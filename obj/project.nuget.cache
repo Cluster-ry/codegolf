@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "5jNgQL80ylugsfz0yThQkGzE0gKIYexjeU9B3sOq0rv4Hi874Fj73fj1yOGeftHxJ8cRTrhK/2BGvQAyAwxZ4g==",
+  "dgSpecHash": "51Z4c2UtMq67+Fe2nWg+N5i+Q8WKB8xBOyJLknHOJTCp4jVtZatURLP1VQ7otN3H2LjyEPs2mhCZ4ESGdp+rew==",
   "success": true,
   "projectFilePath": "/home/kema/git/cluster/CodeGolf/CodeGolf.csproj",
   "expectedPackageFiles": [
+    "/home/kema/.nuget/packages/microsoft.net.build.containers/7.0.401/microsoft.net.build.containers.7.0.401.nupkg.sha512",
     "/home/kema/.nuget/packages/microsoft.aspnetcore.app.ref/7.0.11/microsoft.aspnetcore.app.ref.7.0.11.nupkg.sha512"
   ],
   "logs": []

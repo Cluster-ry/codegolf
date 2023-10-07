@@ -9,6 +9,11 @@ public class ProblemService
 {
     private readonly DataBaseContext _dataBaseContext = new();
 
+    public List<Problem> GetAllProblems()
+    {
+        return _dataBaseContext.Problems.ToList();
+    }
+
     private void AddProblem(Problem toAdd)
     {
         if (_dataBaseContext.Problems.Any(problem => problem.Name == toAdd.Name))
@@ -32,5 +37,13 @@ public class ProblemService
         {
             AddProblem(problem);
         }
+    }
+
+    public List<Answer> GetHighScores(int problemId)
+    {
+        return _dataBaseContext.Answers
+            .Where(answer => answer.ProblemId == problemId)
+            .OrderBy(answer => answer.Code.Length)
+            .DistinctBy(answer => answer.GroupId).Reverse().ToList();
     }
 }

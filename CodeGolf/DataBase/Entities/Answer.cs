@@ -8,6 +8,7 @@ public class Answer
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
+    public string Code { get; set; }
     public bool Passed { get; set; } = false;
 
     public int GroupId { get; set; }
@@ -15,4 +16,9 @@ public class Answer
 
     public int ProblemId { get; set; }
     public Problem Problem { get; set; }
+
+    public override string ToString()
+    {
+        return $"Answer to problem \"{Problem.Name}\" by group \"{Group.Name}\" with length of {Code.Length} id {Id}";
+    }
 }

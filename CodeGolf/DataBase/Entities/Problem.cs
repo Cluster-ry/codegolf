@@ -10,5 +10,10 @@ public class Problem
     public int Id { get; set; }
     public string Name { get; set; }
 
-    public IEnumerable<Answer> Answers { get; } = new List<Answer>();
+    public List<Answer> Answers { get; } = new List<Answer>();
+
+    public override string ToString()
+    {
+        return $"Problem \"{Name}\"";
+    }
 }

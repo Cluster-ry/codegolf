@@ -11,6 +11,12 @@ public class Group
     public int Id { get; set; }
     public string Name { get; set; }
 
-    public IEnumerable<GroupMember> GroupMembers { get; } = new List<GroupMember>();
-    public IEnumerable<Answer> Answers { get; } = new List<Answer>();
+    public List<GroupMember> GroupMembers { get; } = new List<GroupMember>();
+    public List<Answer> Answers { get; } = new List<Answer>();
+
+    public override string ToString()
+    {
+        var memberPrint = GroupMembers.Aggregate("", (current, groupMember) => current + $" \"{groupMember.Name}\"");
+        return $"Group \"{Name}\", Members: {memberPrint}";
+    }
 }

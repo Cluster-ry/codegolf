@@ -12,4 +12,9 @@ public class GroupMember
     
     public int GroupId { get; set; }
     public Group Group { get; set; }
+
+    public override string ToString()
+    {
+        return $"Member \"{Name}\" of group \"{Group.Name}\"";
+    }
 }

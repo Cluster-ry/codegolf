@@ -13,6 +13,8 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<GroupService>();
 builder.Services.AddSingleton<ProblemService>();
 
+new ProblemService().InitializeProblems();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

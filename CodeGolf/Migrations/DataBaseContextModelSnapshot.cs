@@ -22,6 +22,10 @@ namespace CodeGolf.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("GroupId")
                         .HasColumnType("INTEGER");
 
@@ -81,6 +85,14 @@ namespace CodeGolf.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ExampleSolution")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Explanation")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -93,13 +105,13 @@ namespace CodeGolf.Migrations
             modelBuilder.Entity("CodeGolf.DataBase.Entities.Answer", b =>
                 {
                     b.HasOne("CodeGolf.DataBase.Entities.Group", "Group")
-                        .WithMany()
+                        .WithMany("Answers")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("CodeGolf.DataBase.Entities.Problem", "Problem")
-                        .WithMany()
+                        .WithMany("Answers")
                         .HasForeignKey("ProblemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -112,12 +124,24 @@ namespace CodeGolf.Migrations
             modelBuilder.Entity("CodeGolf.DataBase.Entities.GroupMember", b =>
                 {
                     b.HasOne("CodeGolf.DataBase.Entities.Group", "Group")
-                        .WithMany()
+                        .WithMany("GroupMembers")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("CodeGolf.DataBase.Entities.Group", b =>
+                {
+                    b.Navigation("Answers");
+
+                    b.Navigation("GroupMembers");
+                });
+
+            modelBuilder.Entity("CodeGolf.DataBase.Entities.Problem", b =>
+                {
+                    b.Navigation("Answers");
                 });
 #pragma warning restore 612, 618
         }

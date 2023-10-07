@@ -1,7 +1,12 @@
-﻿namespace CodeGolf.DataBase.Entities;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace CodeGolf.DataBase.Entities;
 
 public class Group
 {
-    public string Name { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
+    public string Name { get; set; }
 }

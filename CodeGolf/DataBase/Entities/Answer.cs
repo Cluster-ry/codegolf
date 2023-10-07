@@ -1,7 +1,12 @@
-﻿namespace CodeGolf.DataBase.Entities;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace CodeGolf.DataBase.Entities;
 
 public class Answer
 {
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     public bool Passed { get; set; } = false;
 

@@ -67,6 +67,20 @@ public class PythonTests
         }
 
         Assert.Fail("Test should throw exception.");
-
     }
+
+    [Fact]
+    public async void PythonRunner_pythonCodePrintStr_returnsString()
+    {
+        string target = "Hello World";
+        string input = $"""print("{target}")""";
+        (string output, string error) = await PythonRunner.ExecutePrintingPythonCode(input);
+        _testOutputHelper.WriteLine("From interop:");
+        _testOutputHelper.WriteLine("Output:");
+        _testOutputHelper.WriteLine(output);
+        _testOutputHelper.WriteLine("Error");
+        _testOutputHelper.WriteLine(error);
+        Assert.Equal($"{target}\n", output);
+    }
+    
 }

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Xunit.Abstractions;
 
 namespace CodeGolf.Tests;
@@ -12,13 +13,33 @@ public class PythonTests
     }
 
     [Fact]
-    public void PythonRunner_pythonCode_sanity()
+    public async void PythonRunner_pythonCode_sanity()
     {
         string input = "1 + 1";
-        PythonRunner runner = new PythonRunner();
-        dynamic output = runner.ExecutePythonCode(input);
+        string output = await PythonRunner.ExecutePythonCode(input);
         _testOutputHelper.WriteLine($"Input: {input} => {output}");
-        _testOutputHelper.WriteLine("typeof output {0}", output.GetType().ToString());
         Assert.Equal("2", output);
+    }
+
+    [Fact(Timeout = 6000)]
+    public async void PythonRunner_pythonCode_timeout()
+    {
+        string input = """
+                       print("Hello world")
+                       i = 0
+                       while 1:
+                           i + 1
+                       print("Done")
+                       """;
+        try
+        {
+            string output = await PythonRunner.ExecutePythonCode(input);
+        }
+        catch (Exception ex)
+        {
+            Assert.IsType<TimeoutException>(ex);
+            return;
+        }
+        Assert.Fail("Test should throw timeout error");
     }
 }

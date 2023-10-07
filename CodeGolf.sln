@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGolf", "CodeGolf\CodeGolf.csproj", "{60ECB902-7100-4E26-8E56-0AFC22CD8A3D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGolf.Tests", "CodeGolf.Tests\CodeGolf.Tests.csproj", "{A8E33F41-8296-4D08-BBB3-A45E99077DAE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{60ECB902-7100-4E26-8E56-0AFC22CD8A3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60ECB902-7100-4E26-8E56-0AFC22CD8A3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60ECB902-7100-4E26-8E56-0AFC22CD8A3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8E33F41-8296-4D08-BBB3-A45E99077DAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8E33F41-8296-4D08-BBB3-A45E99077DAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8E33F41-8296-4D08-BBB3-A45E99077DAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8E33F41-8296-4D08-BBB3-A45E99077DAE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

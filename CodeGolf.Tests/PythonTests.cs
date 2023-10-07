@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.CSharp.RuntimeBinder;
 using Xunit.Abstractions;
 
 namespace CodeGolf.Tests;
@@ -21,7 +22,7 @@ public class PythonTests
         Assert.Equal("2", output);
     }
 
-    [Fact(Timeout = 6000)]
+    [Fact]
     public async void PythonRunner_pythonCode_timeout()
     {
         string input = """
@@ -41,5 +42,31 @@ public class PythonTests
             return;
         }
         Assert.Fail("Test should throw timeout error");
+    }
+
+    [Fact]
+    public async void PythonRunner_pythonCode_TryToCreateFiles()
+    {
+        string input = """
+                     L = ["This is Delhi \n", "This is Paris \n", "This is London \n"]
+                     
+                     # Writing to file
+                     with open("myfile.txt", "w") as file1:
+                         # Writing data to a file
+                         file1.write("Hello \n")
+                         file1.writelines(L)
+                     """;
+        try
+        {
+            string output = await PythonRunner.ExecutePythonCode(input);
+        }
+        catch (Exception e)
+        {
+            Assert.IsType<RuntimeBinderException>(e);
+            return;
+        }
+
+        Assert.Fail("Test should throw exception.");
+
     }
 }

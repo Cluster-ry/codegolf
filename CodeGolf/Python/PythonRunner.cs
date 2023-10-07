@@ -8,7 +8,7 @@ public static class PythonRunner
     public static Task<string> ExecutePythonCode(string pythonCode, CancellationToken token = default)
     {
         TimeSpan maxTimeToProcess = TimeSpan.FromSeconds(5);
-        return executePythonCode(pythonCode).WaitAsync(maxTimeToProcess, token);
+        return Task.Run(() => executePythonCode(pythonCode), token).WaitAsync(maxTimeToProcess, token);
     }
 
     private static Task<String> executePythonCode(String pythonCode)
@@ -22,6 +22,6 @@ public static class PythonRunner
         var scope = engine.CreateScope(); 
         
         dynamic result = engine.Execute(pythonCode, scope);
-        return result.ToString();
+        return Task.FromResult(result.ToString());
     }
 }

@@ -1,10 +1,17 @@
 using IronPython.Hosting;
+using Microsoft.Scripting.Hosting;
 
 namespace CodeGolf.Python;
 
-public class PythonRunner
+public static class PythonRunner
 {
-    public string ExecutePythonCode(string pythonCode)
+    public static Task<string> ExecutePythonCode(string pythonCode, CancellationToken token = default)
+    {
+        TimeSpan maxTimeToProcess = TimeSpan.FromSeconds(5);
+        return executePythonCode(pythonCode).WaitAsync(maxTimeToProcess, token);
+    }
+
+    private static Task<String> executePythonCode(String pythonCode)
     {
         var engine = IronPython.Hosting.Python.CreateEngine();
 
@@ -12,16 +19,9 @@ public class PythonRunner
         var paths = engine.GetSearchPaths();
         //paths.Add("path/to/your/virtualenv/Lib/site-packages"); // Adjust the path
         engine.SetSearchPaths(paths);
-        var scope = engine.CreateScope();
-
-        try
-        {
-            dynamic result = engine.Execute(pythonCode, scope);
-            return result.ToString();
-        }
-        catch (Exception e)
-        {
-            return e.Message;
-        }
+        var scope = engine.CreateScope(); 
+        
+        dynamic result = engine.Execute(pythonCode, scope);
+        return result.ToString();
     }
 }

@@ -9,4 +9,6 @@ public class Problem
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     public string Name { get; set; }
+
+    public IEnumerable<Answer> Answers { get; } = new List<Answer>();
 }

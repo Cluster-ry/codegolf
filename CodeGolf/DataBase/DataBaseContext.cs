@@ -14,9 +14,9 @@ public class DataBaseContext : DbContext
 
     public DataBaseContext()
     {
-        var folder = Environment.SpecialFolder.LocalApplicationData;
+        const Environment.SpecialFolder folder = Environment.SpecialFolder.LocalApplicationData;
         var path = Environment.GetFolderPath(folder);
-        DbPath = System.IO.Path.Join(path, "main.db");
+        DbPath = Path.Join(path, "main.db");
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

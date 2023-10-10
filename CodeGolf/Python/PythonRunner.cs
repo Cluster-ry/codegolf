@@ -7,47 +7,26 @@ namespace CodeGolf.Python;
 
 public static class PythonRunner
 {
-    public static Task<dynamic> ExecutePythonCode(string pythonCode, CancellationToken token = default)
+    public static async Task<(string, string)> ExecutePrintingPythonCode(string pythonCode, CancellationToken token = default)
     {
         TimeSpan maxTimeToProcess = TimeSpan.FromSeconds(5);
-        return Task.Run(() => executePythonCode(pythonCode), token).WaitAsync(maxTimeToProcess, token);
-    }
 
-    public static Task<(string, string)> ExecutePrintingPythonCode(string pythonCode, CancellationToken token = default)
-    {
-        TimeSpan maxTimeToProcess = TimeSpan.FromSeconds(5);
-        return Task.Run(() => executePrintingPythonCode(pythonCode), token).WaitAsync(maxTimeToProcess, token
-        );
-    }
-    
-    private static Task<(String,String)> executePrintingPythonCode(String printingPythonCode)
-    {
         var engine = initialiceEngine();
         using var outputStream = new MemoryStream();
         using var errorStream = new MemoryStream();
         
-        
         engine.Runtime.IO.SetOutput(outputStream, new StreamWriter(outputStream));
         engine.Runtime.IO.SetErrorOutput(errorStream, new StreamWriter(errorStream));
         var scope = engine.CreateScope();
-        
-        _ = engine.Execute(printingPythonCode, scope);
+
+        await Task.Run(() => engine.Execute(pythonCode, scope), token).WaitAsync(maxTimeToProcess, token);
         
         var outputReader = new StreamReader(outputStream);
         var errorReader = new StreamReader(errorStream);
         outputStream.Position = 0;
         errorStream.Position = 0;
-        
-        return Task.FromResult((outputReader.ReadToEnd(), errorReader.ReadToEnd()));
-    }
-
-    private static Task<dynamic> executePythonCode(String pythonCode)
-    {
-        var engine = initialiceEngine();
-        var scope = engine.CreateScope(); 
-        
-        dynamic result = engine.Execute(pythonCode, scope);
-        return Task.FromResult(result);
+    
+        return (outputReader.ReadToEnd(), errorReader.ReadToEnd());
     }
 
     private static ScriptEngine initialiceEngine()

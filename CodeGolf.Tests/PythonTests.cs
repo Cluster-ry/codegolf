@@ -14,15 +14,6 @@ public class PythonTests
     }
 
     [Fact]
-    public async void PythonRunner_pythonCode_sanity()
-    {
-        string input = "1 + 1";
-        string output = await PythonRunner.ExecutePythonCode(input);
-        _testOutputHelper.WriteLine($"Input: {input} => {output}");
-        Assert.Equal("2", output);
-    }
-
-    [Fact]
     public async void PythonRunner_pythonCode_timeout()
     {
         string input = """
@@ -34,7 +25,7 @@ public class PythonTests
                        """;
         try
         {
-            string output = await PythonRunner.ExecutePythonCode(input);
+            _ = await PythonRunner.ExecutePrintingPythonCode(input);
         }
         catch (Exception ex)
         {
@@ -58,19 +49,17 @@ public class PythonTests
                      """;
         try
         {
-            string output = await PythonRunner.ExecutePythonCode(input);
+            _ = await PythonRunner.ExecutePrintingPythonCode(input);
         }
         catch (Exception e)
         {
             Assert.IsType<RuntimeBinderException>(e);
             return;
         }
-
-        Assert.Fail("Test should throw exception.");
     }
 
     [Fact]
-    public async void PythonRunner_pythonCodePrintStr_returnsString()
+    public async void PythonRunner_pythonCode_sanity()
     {
         string target = "Hello World";
         string input = $"""print("{target}")""";

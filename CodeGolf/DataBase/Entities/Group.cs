@@ -10,6 +10,7 @@ public class Group
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     public string Name { get; set; }
+    public bool IsFresher { get; set; }
 
     public List<GroupMember> GroupMembers { get; } = new List<GroupMember>();
     public List<Answer> Answers { get; } = new List<Answer>();

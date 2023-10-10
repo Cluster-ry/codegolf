@@ -5,6 +5,10 @@ using Microsoft.Scripting.Runtime;
 
 namespace CodeGolf.Python;
 
+//This needs more thought
+// in its current form yes it runs the python succesfully but is really unsecure.
+// for example person could write to a file and execute it or just delete the root.
+// Maybe launch a docker for each submission?
 public static class PythonRunner
 {
     public static async Task<(string, string)> ExecutePrintingPythonCode(string pythonCode, CancellationToken token = default)

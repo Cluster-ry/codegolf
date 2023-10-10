@@ -14,6 +14,11 @@ public class ProblemService
         return _dataBaseContext.Problems.ToList();
     }
 
+    public Problem? GetProblem(int problemId)
+    {
+        return _dataBaseContext.Problems.FirstOrDefault(problem => problem.Id == problemId);
+    }
+
     private void AddProblem(Problem toAdd)
     {
         if (_dataBaseContext.Problems.Any(problem => problem.Name == toAdd.Name))

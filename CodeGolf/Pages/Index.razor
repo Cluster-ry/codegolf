@@ -49,7 +49,7 @@
 </div>
 @code{
     public GroupSubmission? Model { get; set; }
-    private static String localStorageGroupKey = "GroupInformation";
+    public static String localStorageGroupKey = "GroupInformation";
     protected override void OnInitialized() => Model ??= new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

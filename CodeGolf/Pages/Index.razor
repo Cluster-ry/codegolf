@@ -1,22 +1,90 @@
 ﻿@page "/"
+@using System.ComponentModel.DataAnnotations;
+@using CodeGolf.DataBase.Entities
+@using Newtonsoft.Json
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedLocalStorage LocalStorage
+@inject ILogger<GroupSubmission> Logger
+
+
 
 <PageTitle>Index</PageTitle>
 
 <h1>Hello, world!</h1>
-<p>Welcome to Cluster 2023 Code-golf.</p>
+<p>Welcome to Cluster 2024 Code-golf.</p>
 
 <text>
     The aim of this is to finish the following coding tasks with the lowest amount of characters used, just like in real golf.
     You need to gather all your wits and group members and put your working heads together.
 </text>
+<div>
+<EditForm Model="@Model" OnValidSubmit="@OnSubmit">
+    <text>Who are you?</text>
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+    <div>
+        <label>
+            Group name:
+            <InputText @bind-Value="Model!.Name"/>
+        </label>
+    </div>
+    <div>
+        <label>
+            Are you fux?
+            <InputCheckbox @bind-Value="Model!.IsFresher"></InputCheckbox>
+        </label>
+    </div>
+    <div>
+        <label>
+            Who is in your group?
+            <InputText @bind-Value="Model!.GroupMember0"></InputText>
+            <InputText @bind-Value="Model!.GroupMember1"></InputText>
+            <InputText @bind-Value="Model!.GroupMember2"></InputText>
+        </label>
+    </div>
+    <div>
+        <button type="submit">Submit</button>
+    </div>
+</EditForm>
+</div>
+@code{
+    public GroupSubmission? Model { get; set; }
+    private static String localStorageGroupKey = "GroupInformation";
+    protected override void OnInitialized() => Model ??= new();
 
-<form>
-    Who are you?
-    <label for="group-name">Group name:</label>
-    <input type="text" id="group-name" placeholder="Epic Group Name"/>
-    <label for="group-member-0">Who is in your group?</label>
-    <input type="text" id="group-member-0" placeholder="John"/>
-    <input type="text" id="group-member-1" placeholder="John"/>
-    <input type="text" id="group-member-2" placeholder="John"/>
-    <input type="submit"/>
-</form>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var result = await LocalStorage.GetAsync<GroupSubmission>(localStorageGroupKey);
+        if (result.Success)
+        {
+            Model = result.Value;
+            StateHasChanged();
+
+        }
+    }
+    
+    private async Task OnSubmit()
+    {
+        Logger.LogInformation($"Submitted group {Model}");
+        await LocalStorage.SetAsync(localStorageGroupKey, Model);
+    }
+    
+    public class GroupSubmission
+    {
+        [Required]
+        public string Name { get; set; }
+        [Required] 
+        public string GroupMember0 { get; set; }
+        public string? GroupMember1 { get; set; }
+        public string? GroupMember2 { get; set; }
+        [Required]
+        public bool IsFresher { get; set; }
+
+        public override string ToString()
+            => $"Name: {Name}, Fux:{IsFresher}, Members: {GroupMember0}, {GroupMember1}, {GroupMember2}";
+    }
+
+
+}

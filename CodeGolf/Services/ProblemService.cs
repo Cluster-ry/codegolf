@@ -46,4 +46,12 @@ public class ProblemService
             .OrderBy(answer => answer.Code.Length).Reverse() 
             .DistinctBy(answer => answer.GroupId).ToList();
     }
+
+    public List<Answer> GetLowScores(int problemId)
+    {
+        return _dataBaseContext.Answers
+                    .Where(answer => answer.ProblemId == problemId)
+                    .OrderBy(answer => answer.Code.Length) 
+                    .DistinctBy(answer => answer.GroupId).ToList();
+    }
 }

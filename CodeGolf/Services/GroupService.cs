@@ -6,10 +6,12 @@ namespace CodeGolf.Services;
 public sealed class GroupService
 {
     private readonly DataBaseContext _dataBaseContext;
+    private readonly ILogger<GroupService> _logger;
 
-    public GroupService(DataBaseContext dataBaseContext)
+    public GroupService(DataBaseContext dataBaseContext, ILogger<GroupService> logger)
     {
         _dataBaseContext = dataBaseContext;
+        _logger = logger;
     }
 
 

@@ -14,7 +14,7 @@ public class PythonTests
     }
 
     [Fact]
-    public async void PythonRunner_pythonCode_timeout()
+    public async Task PythonRunner_pythonCode_timeout()
     {
         string input = """
                        print("Hello world")
@@ -36,7 +36,7 @@ public class PythonTests
     }
 
     [Fact]
-    public async void PythonRunner_pythonCode_TryToCreateFiles()
+    public async Task PythonRunner_pythonCode_TryToCreateFiles()
     {
         string input = """
                      L = ["This is Delhi \n", "This is Paris \n", "This is London \n"]
@@ -59,7 +59,7 @@ public class PythonTests
     }
 
     [Fact]
-    public async void PythonRunner_pythonCode_sanity()
+    public async Task PythonRunner_pythonCode_sanity()
     {
         string target = "Hello World";
         string input = $"""print("{target}")""";

@@ -4,6 +4,7 @@ using Xunit.Abstractions;
 
 namespace CodeGolf.Tests;
 using CodeGolf.Python;
+
 public class PythonTests
 {
     private readonly ITestOutputHelper _testOutputHelper;

@@ -3,9 +3,15 @@ using CodeGolf.DataBase.Entities;
 
 namespace CodeGolf.Services;
 
-public class GroupService
+public sealed class GroupService
 {
-    private readonly DataBaseContext _dataBaseContext = new();
+    private readonly DataBaseContext _dataBaseContext;
+
+    public GroupService(DataBaseContext dataBaseContext)
+    {
+        _dataBaseContext = dataBaseContext;
+    }
+
 
     public Group RegisterGroup(Group group)
     {

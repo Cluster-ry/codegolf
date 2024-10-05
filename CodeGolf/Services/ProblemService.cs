@@ -4,9 +4,15 @@ using CodeGolf.DataBase.Entities;
 
 namespace CodeGolf.Services;
 
-public class ProblemService
+public sealed class ProblemService
 {
-    private readonly DataBaseContext _dataBaseContext = new();
+    private readonly DataBaseContext _dataBaseContext;
+
+    public ProblemService(DataBaseContext dataBaseContext)
+    {
+        _dataBaseContext = dataBaseContext;
+    }
+
 
     public List<Problem> GetAllProblems()
     {

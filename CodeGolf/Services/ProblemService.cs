@@ -1,7 +1,6 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json;
 using CodeGolf.DataBase;
 using CodeGolf.DataBase.Entities;
-using Newtonsoft.Json;
 
 namespace CodeGolf.Services;
 
@@ -36,7 +35,7 @@ public class ProblemService
     {
         using var file = new StreamReader("./problems.json");
         var json = file.ReadToEnd();
-        var problems = JsonConvert.DeserializeObject<List<Problem>>(json);
+        var problems = JsonSerializer.Deserialize<List<Problem>>(json);
 
         foreach (var problem in problems)
         {

@@ -1,16 +1,19 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using CodeGolf.DataBase;
 using CodeGolf.DataBase.Entities;
+using CodeGolf.Tools;
 
 namespace CodeGolf.Services;
 
 public sealed class ProblemService
 {
     private readonly DataBaseContext _dataBaseContext;
+    private readonly ILogger<ProblemService> _logger;
 
-    public ProblemService(DataBaseContext dataBaseContext)
+    public ProblemService(DataBaseContext dataBaseContext, ILogger<ProblemService> logger)
     {
         _dataBaseContext = dataBaseContext;
+        _logger = logger;
     }
 
 
@@ -31,7 +34,7 @@ public sealed class ProblemService
             return;
         }
         
-        Console.WriteLine($"Adding problem: {toAdd}");
+        _logger.AddProblem(toAdd);
 
         _dataBaseContext.Problems.Add(toAdd);
         _dataBaseContext.SaveChanges();

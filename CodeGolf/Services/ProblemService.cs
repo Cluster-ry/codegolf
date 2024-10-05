@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using CodeGolf.DataBase;
 using CodeGolf.DataBase.Entities;
 using CodeGolf.Tools;
@@ -17,7 +17,7 @@ public sealed class ProblemService
     }
 
 
-    public List<Problem> GetAllProblems()
+    public IReadOnlyCollection<Problem> GetAllProblems()
     {
         return _dataBaseContext.Problems.ToList();
     }
@@ -33,9 +33,9 @@ public sealed class ProblemService
         {
             return;
         }
-        
-        _logger.AddProblem(toAdd);
 
+        _logger.AddProblem(toAdd);
+        
         _dataBaseContext.Problems.Add(toAdd);
         _dataBaseContext.SaveChanges();
     }
@@ -46,25 +46,24 @@ public sealed class ProblemService
         var json = file.ReadToEnd();
         var problems = JsonSerializer.Deserialize<List<Problem>>(json);
 
-        foreach (var problem in problems)
-        {
-            AddProblem(problem);
-        }
+        problems?.ForEach(AddProblem);
     }
 
-    public List<Answer> GetHighScores(int problemId)
+    public IReadOnlyCollection<Answer> GetHighScores(int problemId)
     {
         return _dataBaseContext.Answers
             .Where(answer => answer.ProblemId == problemId)
-            .OrderBy(answer => answer.Code.Length).Reverse() 
-            .DistinctBy(answer => answer.GroupId).ToList();
+            .OrderByDescending(answer => answer.Code.Length)
+            .DistinctBy(answer => answer.GroupId)
+            .ToList();
     }
 
-    public List<Answer> GetLowScores(int problemId)
+    public IReadOnlyCollection<Answer> GetLowScores(int problemId)
     {
         return _dataBaseContext.Answers
-                    .Where(answer => answer.ProblemId == problemId)
-                    .OrderBy(answer => answer.Code.Length) 
-                    .DistinctBy(answer => answer.GroupId).ToList();
+            .Where(answer => answer.ProblemId == problemId)
+            .OrderBy(answer => answer.Code.Length) 
+            .DistinctBy(answer => answer.GroupId)
+            .ToList();
     }
 }

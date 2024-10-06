@@ -2,42 +2,46 @@
 using CodeGolf.DataBase;
 using CodeGolf.DataBase.Entities;
 using CodeGolf.Tools;
+using Microsoft.EntityFrameworkCore;
 
 namespace CodeGolf.Services;
 
 public sealed class ProblemService
 {
-    private readonly DataBaseContext _dataBaseContext;
+    private readonly IDbContextFactory<DataBaseContext> _dataBaseContextFactory;
     private readonly ILogger<ProblemService> _logger;
 
-    public ProblemService(DataBaseContext dataBaseContext, ILogger<ProblemService> logger)
+    public ProblemService(IDbContextFactory<DataBaseContext> dataBaseContextFactory, ILogger<ProblemService> logger)
     {
-        _dataBaseContext = dataBaseContext;
+        _dataBaseContextFactory = dataBaseContextFactory;
         _logger = logger;
     }
 
 
     public IReadOnlyCollection<Problem> GetAllProblems()
     {
-        return _dataBaseContext.Problems.ToList();
+        using var context =_dataBaseContextFactory.CreateDbContext();
+        return [.. context.Problems];
     }
 
     public Problem? GetProblem(int problemId)
     {
-        return _dataBaseContext.Problems.FirstOrDefault(problem => problem.Id == problemId);
+        using var context =_dataBaseContextFactory.CreateDbContext();
+        return context.Problems.FirstOrDefault(problem => problem.Id == problemId);
     }
 
     private void AddProblem(Problem toAdd)
     {
-        if (_dataBaseContext.Problems.Any(problem => problem.Name == toAdd.Name))
+        using var context =_dataBaseContextFactory.CreateDbContext();
+        if (context.Problems.Any(problem => problem.Name == toAdd.Name))
         {
             return;
         }
 
         _logger.AddProblem(toAdd);
         
-        _dataBaseContext.Problems.Add(toAdd);
-        _dataBaseContext.SaveChanges();
+        context.Problems.Add(toAdd);
+        context.SaveChanges();
     }
 
     public void InitializeProblems()
@@ -49,19 +53,23 @@ public sealed class ProblemService
         problems?.ForEach(AddProblem);
     }
 
-    public IReadOnlyCollection<Answer> GetHighScores(int problemId)
+    public IReadOnlyCollection<Answer> GetHighScores(int problemId, bool fux)
     {
-        return _dataBaseContext.Answers
+        using var context =_dataBaseContextFactory.CreateDbContext();
+        return context.Answers
             .Where(answer => answer.ProblemId == problemId)
+            .Where(answer => answer.Group.IsFresher == fux)
             .OrderByDescending(answer => answer.Code.Length)
             .DistinctBy(answer => answer.GroupId)
             .ToList();
     }
 
-    public IReadOnlyCollection<Answer> GetLowScores(int problemId)
+    public IReadOnlyCollection<Answer> GetLowScores(int problemId, bool fux)
     {
-        return _dataBaseContext.Answers
+        using var context =_dataBaseContextFactory.CreateDbContext();
+        return context.Answers
             .Where(answer => answer.ProblemId == problemId)
+            .Where(answer => answer.Group.IsFresher == fux)
             .OrderBy(answer => answer.Code.Length) 
             .DistinctBy(answer => answer.GroupId)
             .ToList();

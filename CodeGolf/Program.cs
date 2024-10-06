@@ -1,11 +1,13 @@
 using CodeGolf.Services;
 using CodeGolf.DataBase;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddPooledDbContextFactory<DataBaseContext>(options => options.UseInMemoryDatabase("Inmemory"));
 builder.Services.AddSingleton<DataBaseContext>();
 builder.Services.AddSingleton<GroupService>();
 builder.Services.AddSingleton<ProblemService>();
@@ -24,7 +26,6 @@ if (!app.Environment.IsDevelopment())
 
 var problemService = app.Services.GetRequiredService<ProblemService>();
 problemService.InitializeProblems();
-
 
 app.UseHttpsRedirection();
 

@@ -1,29 +1,32 @@
 ﻿using CodeGolf.DataBase;
 using CodeGolf.DataBase.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace CodeGolf.Services;
 
 public sealed class GroupService
 {
-    private readonly DataBaseContext _dataBaseContext;
+    private readonly IDbContextFactory<DataBaseContext> _dataBaseContextFactory;
     private readonly ILogger<GroupService> _logger;
 
-    public GroupService(DataBaseContext dataBaseContext, ILogger<GroupService> logger)
+    public GroupService(IDbContextFactory<DataBaseContext> dataBaseContextFactory, ILogger<GroupService> logger)
     {
-        _dataBaseContext = dataBaseContext;
+        _dataBaseContextFactory = dataBaseContextFactory;
         _logger = logger;
     }
 
 
     public Group RegisterGroup(Group group)
     {
-        _dataBaseContext.Add(group);
-        _dataBaseContext.SaveChanges();
+        using var databaseContext = _dataBaseContextFactory.CreateDbContext();
+        databaseContext.Add(group);
+        databaseContext.SaveChanges();
         return group;
     }
 
     public Group? GetGroup(int id)
     {
-        return _dataBaseContext.Groups.Find(id);
+        using var databaseContext = _dataBaseContextFactory.CreateDbContext();
+        return databaseContext.Groups.Find(id);
     }
 }

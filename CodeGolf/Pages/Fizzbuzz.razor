@@ -1,4 +1,4 @@
-﻿@page "/Problem/Fizzbuss"
+﻿@page "/Problems/Fizzbuzz"
 @using System.ComponentModel.DataAnnotations;
 @using CodeGolf.DataBase.Entities
 @using CodeGolf.Services
@@ -12,7 +12,7 @@
 <PageTitle>@Problem?.Name</PageTitle>
 
 <text>
-    @Problem.Explanation
+    @Problem?.Explanation
 </text>
 <div>
     <EditForm Model="@Model" OnValidSubmit="@OnSubmit">
@@ -29,6 +29,7 @@
         </div>
     </EditForm>
 </div>
+
 @code{
     private static int _problemIndex = 0;
     public Problem? Problem => ProblemService.GetProblem(_problemIndex);

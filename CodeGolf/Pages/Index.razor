@@ -61,17 +61,22 @@
         {
             Model = result.Value;
             StateHasChanged();
-
         }
     }
     
     private async Task OnSubmit()
     {
+        if(Model is null)
+        {
+            Logger.LogInformation("Submitted null Model");
+            return;
+        }
+
         Logger.LogInformation($"Submitted group {Model}");
         await LocalStorage.SetAsync(localStorageGroupKey, Model);
     }
     
-    public class GroupSubmission
+    public sealed class GroupSubmission
     {
         [Required]
         public string Name { get; set; }

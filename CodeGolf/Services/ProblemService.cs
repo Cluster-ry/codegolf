@@ -24,10 +24,10 @@ public sealed class ProblemService
         return [.. context.Problems];
     }
 
-    public Problem? GetProblem(int problemId)
+    public Problem? GetProblem(string problemName)
     {
         using var context =_dataBaseContextFactory.CreateDbContext();
-        return context.Problems.FirstOrDefault(problem => problem.Id == problemId);
+        return context.Problems.FirstOrDefault(problem => problem.Name == problemName);
     }
 
     private void AddProblem(Problem toAdd)

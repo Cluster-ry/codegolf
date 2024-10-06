@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace CodeGolf.DataBase.Entities;
 
@@ -12,8 +13,8 @@ public class Group
     public string Name { get; set; }
     public bool IsFresher { get; set; }
 
-    public List<GroupMember> GroupMembers { get; } = new List<GroupMember>();
-    public List<Answer> Answers { get; } = new List<Answer>();
+    public DbSet<GroupMember> GroupMembers { get; }
+    public DbSet<Answer> Answers { get; }
 
     public override string ToString()
     {

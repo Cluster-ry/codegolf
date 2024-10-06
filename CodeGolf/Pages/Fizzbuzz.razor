@@ -31,8 +31,8 @@
 </div>
 
 @code{
-    private static int _problemIndex = 0;
-    public Problem? Problem => ProblemService.GetProblem(_problemIndex);
+    private static string _problemName = "FuksiPallero";
+    public Problem? Problem => ProblemService.GetProblem(_problemName);
     
     public static String localStorageAnswerKey = "RecentProblemAnswer";
     public static String localStorageGroupKey = "GroupInformation";

@@ -1,15 +1,8 @@
 using System.Text;
-using System.Diagnostics;
-using Microsoft.Scripting.Hosting;
-using Microsoft.Scripting.Runtime;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using System.Runtime.InteropServices;
 using CodeGolf.Tools;
-using System.ComponentModel;
-using System.Diagnostics.Contracts;
-using System.Text.Json;
-using System.Formats.Tar;
 
 namespace CodeGolf.Python;
 

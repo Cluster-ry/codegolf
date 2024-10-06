@@ -1,9 +1,5 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using CodeGolf.DataBase.Entities;
 using CodeGolf.Services;
 using CodeGolf.DataBase;
-using IronPython.Modules;
 
 var builder = WebApplication.CreateBuilder(args);
 

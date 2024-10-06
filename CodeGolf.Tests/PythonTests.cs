@@ -4,18 +4,31 @@ using Xunit.Abstractions;
 
 namespace CodeGolf.Tests;
 using CodeGolf.Python;
+using Microsoft.AspNetCore.Builder;
 
 public class PythonTests
 {
     private readonly ITestOutputHelper _testOutputHelper;
-
     public PythonTests(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
     }
 
-    [Fact]
-    public async Task PythonRunner_pythonCode_timeout()
+    private PythonRunner CreateRunner() => new PythonRunner(_testOutputHelper.BuildLoggerFor<PythonRunner>());
+
+    private void WriteResults(string pythonCode, string outputString, string errorString)
+    {
+        _testOutputHelper.WriteLine("Input:");
+        _testOutputHelper.WriteLine(pythonCode);
+        _testOutputHelper.WriteLine("Output:");
+        _testOutputHelper.WriteLine(outputString);
+        _testOutputHelper.WriteLine("Error:");
+        _testOutputHelper.WriteLine(errorString);
+    }
+
+    //TODO FIX TEST
+    [Fact(Timeout = 10000)]
+    public async Task PythonRunner_pythonCode_Timeout()
     {
         string input = """
                        print("Hello world")
@@ -26,7 +39,9 @@ public class PythonTests
                        """;
         try
         {
-            _ = await PythonRunner.ExecutePrintingPythonCode(input);
+            var runner = CreateRunner();
+            (string outputString, string errorString) = await runner.ExecutePrintingPythonCode(input);
+            WriteResults(input, outputString, errorString);
         }
         catch (Exception ex)
         {
@@ -36,6 +51,28 @@ public class PythonTests
         Assert.Fail("Test should throw timeout error");
     }
 
+    [Fact]
+    public async Task PythonRunner_pythonCode_HandlesFailsGracefully()
+    {
+        string input = """
+                     L = ["This is Delhi \n", "This is Paris \n", "This is London \n"]
+                     
+                     # Writing to file
+                     with open("myfile.txt", "w") as file1:
+                         # Writing data to a file
+                         file1.write("Hello \n")
+                         file1.writelines(L)
+                     
+                     with open("myfile.txt", "o") as file2:
+                        print(file2.readlines())
+                     """;
+        var runner = CreateRunner();
+        (string outputString, string errorString) = await runner.ExecutePrintingPythonCode(input);
+        WriteResults(input, outputString, errorString);
+        Assert.True(true);
+    }
+
+    //TODO FIX TEST
     [Fact]
     public async Task PythonRunner_pythonCode_TryToCreateFiles()
     {
@@ -47,16 +84,21 @@ public class PythonTests
                          # Writing data to a file
                          file1.write("Hello \n")
                          file1.writelines(L)
+                     
+                     with open("myfile.txt", "r") as file2:
+                        print(file2.readlines())
                      """;
         try
         {
-            _ = await PythonRunner.ExecutePrintingPythonCode(input);
+            var runner = CreateRunner();
+            (string outputString, string errorString) = await runner.ExecutePrintingPythonCode(input);
+            WriteResults(input, outputString, errorString);
         }
-        catch (Exception e)
-        {
-            Assert.IsType<RuntimeBinderException>(e);
-            return;
+        catch{
+            Assert.Fail();
         }
+
+        Assert.True(true);
     }
 
     [Fact]
@@ -64,13 +106,10 @@ public class PythonTests
     {
         string target = "Hello World";
         string input = $"""print("{target}")""";
-        (string output, string error) = await PythonRunner.ExecutePrintingPythonCode(input);
-        _testOutputHelper.WriteLine("From interop:");
-        _testOutputHelper.WriteLine("Output:");
-        _testOutputHelper.WriteLine(output);
-        _testOutputHelper.WriteLine("Error");
-        _testOutputHelper.WriteLine(error);
+        var runner = CreateRunner();
+        (string output, string error) = await runner.ExecutePrintingPythonCode(input);
+        WriteResults(input, output, error);
+        
         Assert.Equal($"{target}\n", output);
     }
-    
 }

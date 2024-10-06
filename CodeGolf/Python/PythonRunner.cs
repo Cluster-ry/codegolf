@@ -1,66 +1,189 @@
 using System.Text;
-using IronPython.Hosting;
+using System.Diagnostics;
 using Microsoft.Scripting.Hosting;
 using Microsoft.Scripting.Runtime;
+using Docker.DotNet;
+using Docker.DotNet.Models;
+using System.Runtime.InteropServices;
 using CodeGolf.Tools;
+using System.ComponentModel;
+using System.Diagnostics.Contracts;
+using System.Text.Json;
+using System.Formats.Tar;
 
 namespace CodeGolf.Python;
 
-//This needs more thought
-// in its current form yes it runs the python succesfully but is really unsecure.
-// for example person could write to a file and execute it or just delete the root.
-// Maybe launch a docker for each submission?
-public sealed class PythonRunner
+public sealed class PythonRunner : IDisposable
 {
     private readonly ILogger<PythonRunner> _logger;
+    private const string pythonContainer = @"docker.io/python:alpine";
+    private static readonly TimeSpan RunnerTimeOut = TimeSpan.FromSeconds(5);
     private static readonly Encoding encoding = Encoding.UTF8;
+    private readonly CancellationTokenSource _lifetimeTokenSource = new();
+    private readonly DockerClient? _containerClient;
+    private readonly DirectoryInfo submissionDirectory = Directory.CreateTempSubdirectory("CodeGolfSubmissions");
+
+
+    public bool Loaded {get; private set;}
+    public bool Failed => Loaded && _containerClient is null;
+
 
     public PythonRunner(ILogger<PythonRunner> logger)
     {
         _logger = logger;
+        _containerClient = CreateContainerClient();
+        LoadRunner();
+    }
+
+    public void Dispose(){
+        _lifetimeTokenSource.Cancel();
+        _lifetimeTokenSource.Dispose();
+        _containerClient?.Dispose();
     }    
 
-    public async Task<(string, string)> ExecutePrintingPythonCode(string pythonCode, Stream? inputStream = null, CancellationToken token = default)
-    {
-        TimeSpan maxTimeToProcess = TimeSpan.FromSeconds(5);
+    private void LoadRunner(){
+        if(Failed) return;
 
-        var engine = InitialiceEngine();
-        var outputStream = new MemoryStream();
-        var errorStream = new MemoryStream();
-
-        if(inputStream is not null) engine.Runtime.IO.SetInput(inputStream, encoding);
-        engine.Runtime.IO.SetOutput(outputStream, encoding);
-        engine.Runtime.IO.SetErrorOutput(errorStream, encoding);
-
-        var scope = engine.CreateScope();
-        var source = engine.CreateScriptSourceFromString(pythonCode);
-
-        await Task.Run(() => source.Execute(scope), token).WaitAsync(maxTimeToProcess, token);
-        
-        var outputTask = ReadFullStream(outputStream, encoding, token);
-        var errorTask = ReadFullStream(errorStream, encoding, token);
-        var results = await Task.WhenAll(outputTask, errorTask).ConfigureAwait(false);
-
-        return (results[0], results[1]);
+        Task.Run(async () => {
+            await PullImage(_containerClient!, _lifetimeTokenSource.Token).ConfigureAwait(false);
+            Loaded = true;
+        }, _lifetimeTokenSource.Token);
     }
 
-    private static Task<string> ReadFullStream(Stream stream, Encoding encoding, CancellationToken token)
+    public async Task<(long, string, string)> ExecutePythonCode(string pythonCode, string input = "", CancellationToken token = default)
     {
-        stream.Position = 0;
-        using var reader = new StreamReader(stream, encoding);
-        
-        return reader.ReadToEndAsync(token);        
+        if(Failed) throw new ArgumentException("Containerclient failed to load");
+        return await RunContainer(_containerClient!, pythonCode, input, _lifetimeTokenSource.Token).ConfigureAwait(false);
+    }
+
+    private async Task PullImage(DockerClient client, CancellationToken token)
+    {
+        var config = new ImagesCreateParameters(){
+            FromImage = pythonContainer,
+        };
+        AuthConfig? auth = null;
+        var progress = new Progress<JSONMessage>();
+
+        _logger.LoadImage(pythonContainer);
+        await client.Images.CreateImageAsync(config, auth, progress, token).ConfigureAwait(false); 
+        _logger.LoadImageDone(pythonContainer);
     }
 
 
-    private static ScriptEngine InitialiceEngine()
+    private async Task<(long, string, string)> RunContainer(DockerClient client, string pythonCode, string stdin, CancellationToken token)
     {
-        var engine = IronPython.Hosting.Python.CreateEngine();
-        // Set up search paths to include your virtual environment's site-packages
-        var paths = engine.GetSearchPaths();
-        //paths.Add("path/to/your/virtualenv/Lib/site-packages"); // Adjust the path
-        engine.SetSearchPaths(paths);
+        var filePath = Path.Combine(submissionDirectory.FullName, Path.GetRandomFileName());
+        await File.WriteAllTextAsync(filePath, pythonCode, token).ConfigureAwait(false);
 
-        return engine;
+
+        var config = new CreateContainerParameters(){
+            Image = pythonContainer,
+            Cmd = ["python", "submission.py"],
+            OpenStdin = true,
+            StdinOnce = true,
+            HostConfig = new HostConfig(){
+                NetworkMode = "none",
+                Binds = [$"{filePath}:/submission.py"]
+            }
+        };
+        
+        var container = await client.Containers.CreateContainerAsync(config, token).ConfigureAwait(false);
+        _logger.CreateContainer(pythonContainer, container.ID);
+
+
+        try
+        {   
+            var attachParameters = new ContainerAttachParameters(){
+                Stream = true,
+                Stdin = true,
+                Stdout = true,
+                Stderr = true
+            };
+
+            var multiplexedStream = await client.Containers.AttachContainerAsync(container.ID, tty: false,attachParameters, token).ConfigureAwait(false);
+            var buffer = encoding.GetBytes(stdin);
+            await multiplexedStream.WriteAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
+            multiplexedStream.CloseWrite();
+
+            var result = await client.Containers.StartContainerAsync(container.ID, new(), token).ConfigureAwait(false);
+            _logger.StartContainer(container.ID, stdin);
+            
+            var waitResult = await client.Containers.WaitContainerAsync(container.ID, token).WaitAsync(RunnerTimeOut, token).ConfigureAwait(false);
+            var exitCode = waitResult.StatusCode;
+
+            var logStream = await client.Containers.GetContainerLogsAsync(container.ID, tty: false, new(){
+                ShowStdout = true,
+                ShowStderr = true
+            }, token).ConfigureAwait(false);
+
+            (string stdout, string stderr) = await logStream.ReadOutputToEndAsync(token).ConfigureAwait(false);
+            _logger.ContainerCommand(pythonCode, stdin, stdout, stderr);
+
+            //Seems like the following doesn't report anything
+            /*
+            var statsHandler = new Progress<ContainerStatsResponse>((stats) => _logger.ContainerStats(stats.Name, JsonSerializer.Serialize(stats, jsonSerializerOptions)));
+
+            await client.Containers.GetContainerStatsAsync(container.ID, new(){
+                Stream = false,
+                OneShot = true
+            }, statsHandler, token).ConfigureAwait(false);
+            */
+            return (exitCode, stdout, stderr);
+        }
+        catch(TimeoutException ex){
+            _logger.ContainerTimeout(container.ID, RunnerTimeOut, ex);
+            throw;
+        }
+        finally
+        {
+            await client.Containers.RemoveContainerAsync(container.ID, new(){
+                Force = true,
+            }, token).ConfigureAwait(false);
+            File.Delete(filePath);
+            _logger.RemoveContainer(container.ID);
+        }
+    }
+
+    private DockerClient? CreateContainerClient()
+    {
+        var containerHostUri = GetContainerClientUri();
+        if(string.IsNullOrWhiteSpace(containerHostUri)) return null;
+        try{
+            //Disposed by client
+            #pragma warning disable CA2000 // Dispose objects before losing scope
+            var containerClientConfiguration = new DockerClientConfiguration(new Uri(containerHostUri));
+            #pragma warning restore CA2000 // Dispose objects before losing scope
+            return containerClientConfiguration.CreateClient();
+        }
+        catch(Exception ex){
+            _logger.ContainerClientLoadFailed(containerHostUri, ex);
+            return null;
+        }
+    }
+
+    private static string GetContainerClientUri()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return "npipe://./pipe/docker_engine";
+        }
+        else
+        {
+            [DllImport("libc")]
+            static extern uint geteuid();           
+
+            string podmanPath = $"/run/user/{geteuid()}/podman/podman.sock";
+            if (File.Exists(podmanPath))
+            {
+                return $"unix://{podmanPath}";
+            }
+
+            string dockerPath = "/var/run/docker.sock";
+            if(File.Exists(dockerPath)){
+                return $"unix://{dockerPath}";
+            }
+
+            return "";
+        }
     }
 }

@@ -16,18 +16,29 @@ public class PythonTests
 
     private PythonRunner CreateRunner() => new PythonRunner(_testOutputHelper.BuildLoggerFor<PythonRunner>());
 
-    private void WriteResults(string pythonCode, string outputString, string errorString)
+    [Fact(Timeout = 60_000)]
+    public async Task PythonRunner_LoadRunner_HappyPath()
     {
-        _testOutputHelper.WriteLine("Input:");
-        _testOutputHelper.WriteLine(pythonCode);
-        _testOutputHelper.WriteLine("Output:");
-        _testOutputHelper.WriteLine(outputString);
-        _testOutputHelper.WriteLine("Error:");
-        _testOutputHelper.WriteLine(errorString);
+        using var runner = CreateRunner();
+        while(!runner.Loaded) await Task.Delay(100);
+        Assert.True(true);
     }
 
-    //TODO FIX TEST
-    [Fact(Timeout = 10000)]
+    [Fact(Timeout = 60_000)]
+    public async Task PythonRunner_HelloWorld_Sanity()
+    {
+        string target = "Hello World";
+        string pythonCode = $"""print("{target}")""";
+        using var runner = CreateRunner();
+        while(!runner.Loaded) await Task.Delay(100);
+        (long errorCode, string output, string error) = await runner.ExecutePythonCode(pythonCode);
+        Assert.True(errorCode == 0);
+        Assert.NotEmpty(output);
+        Assert.Empty(error);
+        Assert.Equal($"{target}\n", output);
+    }
+
+    [Fact(Timeout = 60_000)]
     public async Task PythonRunner_pythonCode_Timeout()
     {
         string input = """
@@ -37,21 +48,14 @@ public class PythonTests
                            i + 1
                        print("Done")
                        """;
-        try
-        {
-            var runner = CreateRunner();
-            (string outputString, string errorString) = await runner.ExecutePrintingPythonCode(input);
-            WriteResults(input, outputString, errorString);
-        }
-        catch (Exception ex)
-        {
-            Assert.IsType<TimeoutException>(ex);
-            return;
-        }
-        Assert.Fail("Test should throw timeout error");
+
+        await Assert.ThrowsAsync<TimeoutException>(async () => {
+            using var runner = CreateRunner();
+            (long errorCode, string outputString, string errorString) = await runner.ExecutePythonCode(input);
+        });
     }
 
-    [Fact]
+    [Fact(Timeout = 60_000)]
     public async Task PythonRunner_pythonCode_HandlesFailsGracefully()
     {
         string input = """
@@ -66,14 +70,15 @@ public class PythonTests
                      with open("myfile.txt", "o") as file2:
                         print(file2.readlines())
                      """;
-        var runner = CreateRunner();
-        (string outputString, string errorString) = await runner.ExecutePrintingPythonCode(input);
-        WriteResults(input, outputString, errorString);
-        Assert.True(true);
+        using var runner = CreateRunner();
+        (long errorCode, string outputString, string errorString) = await runner.ExecutePythonCode(input);
+        Assert.True(errorCode != 0);
+        Assert.Empty(outputString);
+        Assert.NotEmpty(errorString);
     }
 
     //TODO FIX TEST
-    [Fact]
+    [Fact(Timeout = 60_000)]
     public async Task PythonRunner_pythonCode_TryToCreateFiles()
     {
         string input = """
@@ -88,28 +93,29 @@ public class PythonTests
                      with open("myfile.txt", "r") as file2:
                         print(file2.readlines())
                      """;
-        try
-        {
-            var runner = CreateRunner();
-            (string outputString, string errorString) = await runner.ExecutePrintingPythonCode(input);
-            WriteResults(input, outputString, errorString);
-        }
-        catch{
-            Assert.Fail();
-        }
-
-        Assert.True(true);
+        
+        using var runner = CreateRunner();
+        (long errorCode, string outputString, string errorString) = await runner.ExecutePythonCode(input);
+        Assert.True(errorCode == 0);
+        Assert.NotEmpty(outputString);
+        Assert.Empty(errorString);
     }
 
-    [Fact]
-    public async Task PythonRunner_pythonCode_sanity()
+    [Fact(Timeout =  60_000)]
+    public async Task PythonRunner_pythonCode_CannotInternet()
     {
-        string target = "Hello World";
-        string input = $"""print("{target}")""";
-        var runner = CreateRunner();
-        (string output, string error) = await runner.ExecutePrintingPythonCode(input);
-        WriteResults(input, output, error);
-        
-        Assert.Equal($"{target}\n", output);
+        string python = """
+                        import os
+                        
+                        res = os.popen("curl google.com").read()
+                        print(res)
+                        res = os.popen("ipconfig").read()
+                        print(res)
+                        res = os.popen("ip addr").read()
+                        print(res)
+                        """;
+        using var runner = CreateRunner();
+        (long errorCode, string outputString, string errorString) = await runner.ExecutePythonCode(python);
+        Assert.NotEmpty(errorString);
     }
 }

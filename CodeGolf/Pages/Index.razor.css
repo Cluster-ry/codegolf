@@ -1,0 +1,95 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    color: #0066cc;
+    font-size: 2em;
+    margin-bottom: 0.5em;
+}
+
+p {
+    font-size: 1.2em;
+    margin-bottom: 1em;
+}
+
+div {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+EditForm {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+EditForm text {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #444;
+}
+
+label {
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+input[type="text"], 
+input[type="checkbox"], 
+button {
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 5px rgba(0, 102, 204, 0.5);
+}
+
+button {
+    background-color: #0066cc;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: none;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #005bb5;
+}
+
+DataAnnotationsValidator, 
+ValidationSummary {
+    color: #cc0000;
+    font-weight: bold;
+}
+
+@media (max-width: 600px) {
+    div {
+        padding: 15px;
+    }
+    h1 {
+        font-size: 1.5em;
+    }
+    p, EditForm text {
+        font-size: 1em;
+    }
+    button {
+        font-size: 0.9em;
+        padding: 8px;
+    }
+}

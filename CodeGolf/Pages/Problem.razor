@@ -22,22 +22,31 @@
         Answer to the problem:
         <InputTextArea @bind-Value="@ProblemSubmission.CurrentSolution" />
     </label>
-
-    <button type="submit">Submit</button>
     <p>Current submission length: @ProblemSubmission.SubmissionLength</p>
+    <button type="submit">Submit</button>
 </EditForm>
 
+<div>
+<h2>Outputs</h2>
+<label>
+    Example Output:
+    <blockquote>
+        <pre>
+        <code>@ProblemSubmission?.ExampleOutput</code>
+        </pre>
+    </blockquote>
+</label>
 
-<h2>Example Output:</h2>
-<blockquote>
-    <code>@ProblemSubmission?.ExampleOutput</code>
-</blockquote>
 
-<h2>Current Output:</h2>
-<blockquote>
-    <code>@ProblemSubmission?.CurrentOutput</code>
-</blockquote>
-
+<label>
+    Current Output:
+    <blockquote>
+        <pre>
+        <code>@ProblemSubmission?.CurrentOutput</code>
+        </pre>
+    </blockquote>
+</label>
+</div>
 
 @code {
     [Parameter]

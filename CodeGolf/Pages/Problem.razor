@@ -1,0 +1,90 @@
+@page "/problems/{ProblemName}"
+
+@using CodeGolf.DataBase.Entities
+@using CodeGolf.Services
+@using CodeGolf.Pages
+
+@using System.ComponentModel.DataAnnotations;
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ILogger<Problem> Logger
+@inject GroupHandler GroupHandler
+@inject ProblemHandler ProblemHandler
+
+<PageTitle>@ProblemDefinition?.Title</PageTitle>
+<h1>@ProblemDefinition?.Title</h1>
+
+<p>@ProblemDefinition?.Explanation</p>
+
+<EditForm Model="@ProblemSubmission" OnValidSubmit="@OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+    <label>
+        Answer to the problem:
+        <InputTextArea @bind-Value="@ProblemSubmission.CurrentSolution" />
+    </label>
+
+    <button type="submit">Submit</button>
+    <p>Current submission length: @ProblemSubmission.SubmissionLength</p>
+</EditForm>
+
+
+<h2>Example Output:</h2>
+<blockquote>
+    <code>@ProblemSubmission?.ExampleOutput</code>
+</blockquote>
+
+<h2>Current Output:</h2>
+<blockquote>
+    <code>@ProblemSubmission?.CurrentOutput</code>
+</blockquote>
+
+
+@code {
+    [Parameter]
+    public string ProblemName {get; init;}
+
+    public ProblemDefinition? ProblemDefinition {get; private set;}
+    public ProblemSubmission? ProblemSubmission {get; private set;}
+
+    protected override void OnInitialized()
+    {
+        ProblemSubmission ??= new ProblemSubmission(){
+            ProblemName = ProblemName,
+        };
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(!firstRender) return;
+
+        ProblemDefinition = LoadProblem();
+        ProblemSubmission = await LoadPreviousSubmission();
+        StateHasChanged();
+    }
+
+    private ProblemDefinition? LoadProblem()
+    {
+        return ProblemHandler.LoadDefinition(ProblemName);
+    }
+
+    private async Task<ProblemSubmission> LoadPreviousSubmission()
+    {
+        var submission = await ProblemHandler.LoadSubmission(ProblemName);
+  
+        return new ProblemSubmission{
+            ProblemName = ProblemName,
+            CurrentSolution = submission,
+        };
+    }
+
+    private async void OnValidSubmit()
+    {
+        Logger.LogInformation("Submitted code:\n{submission}", ProblemSubmission.CurrentSolution);
+        await ProblemHandler.SaveSubmission(ProblemName, ProblemSubmission.CurrentSolution);
+        (bool success, string exampleOutput, string currentOutput) = await ProblemHandler.EvaluateSubmission(ProblemName, ProblemSubmission.CurrentSolution);
+
+        ProblemSubmission.CurrentOutput = currentOutput;
+        ProblemSubmission.ExampleOutput = exampleOutput;
+        ProblemSubmission.Success = success;
+        StateHasChanged();
+    }
+}

@@ -10,7 +10,7 @@ public sealed class PythonRunner : IDisposable
 {
     private readonly ILogger<PythonRunner> _logger;
     private const string pythonContainer = @"docker.io/python:alpine";
-    private static readonly TimeSpan RunnerTimeOut = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan RunnerTimeOut = TimeSpan.FromSeconds(60);
     private static readonly Encoding encoding = Encoding.UTF8;
     private readonly CancellationTokenSource _lifetimeTokenSource = new();
     private readonly DockerClient? _containerClient;

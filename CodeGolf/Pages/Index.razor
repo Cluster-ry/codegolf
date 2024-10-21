@@ -1,12 +1,12 @@
 ﻿@page "/"
-@using System.ComponentModel.DataAnnotations;
-@using CodeGolf.DataBase.Entities
+
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
-@inject ProtectedLocalStorage LocalStorage
-@inject ILogger<GroupSubmission> Logger
+@using CodeGolf.Services;
 
-
+@inject GroupHandler GroupHandler
+@inject ILogger<Index> Logger
+@inject GroupService GroupService
 
 <PageTitle>Index</PageTitle>
 
@@ -18,7 +18,7 @@
     You need to gather all your wits and group members and put your working heads together.
 </text>
 <div>
-<EditForm Model="@Model" OnValidSubmit="@OnSubmit">
+<EditForm Model="@Model" OnValidSubmit="@OnValidSubmit">
     <text>Who are you?</text>
     <DataAnnotationsValidator/>
     <ValidationSummary/>
@@ -47,6 +47,8 @@
     </div>
 </EditForm>
 </div>
+
+
 @code{
     public GroupSubmission? Model { get; set; }
     public static String localStorageGroupKey = "GroupInformation";
@@ -56,15 +58,15 @@
     {
         if (!firstRender) return;
 
-        var result = await LocalStorage.GetAsync<GroupSubmission>(localStorageGroupKey);
-        if (result.Success)
-        {
-            Model = result.Value;
-            StateHasChanged();
-        }
+        var result = await GroupHandler.Load();
+        
+        if(result is null) return;
+        
+        Model = result;
+        StateHasChanged();
     }
     
-    private async Task OnSubmit()
+    private async Task OnValidSubmit()
     {
         if(Model is null)
         {
@@ -73,23 +75,7 @@
         }
 
         Logger.LogInformation($"Submitted group {Model}");
-        await LocalStorage.SetAsync(localStorageGroupKey, Model);
+        await GroupHandler.Save(Model);
+        GroupService.RegisterGroup(Model);
     }
-    
-    public sealed class GroupSubmission
-    {
-        [Required]
-        public string Name { get; set; }
-        [Required] 
-        public string GroupMember0 { get; set; }
-        public string? GroupMember1 { get; set; }
-        public string? GroupMember2 { get; set; }
-        [Required]
-        public bool IsFresher { get; set; }
-
-        public override string ToString()
-            => $"Name: {Name}, Fux:{IsFresher}, Members: {GroupMember0}, {GroupMember1}, {GroupMember2}";
-    }
-
-
 }

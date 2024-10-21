@@ -2,7 +2,9 @@
 using CodeGolf.DataBase;
 using CodeGolf.DataBase.Entities;
 using CodeGolf.Tools;
+using CodeGolf.Python;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace CodeGolf.Services;
 
@@ -18,14 +20,16 @@ public sealed class ProblemService
     }
 
 
-    public IReadOnlyCollection<Problem> GetAllProblems()
+    public IReadOnlyCollection<String> GetAllProblems()
     {
         using var context =_dataBaseContextFactory.CreateDbContext();
-        return [.. context.Problems];
+        return [.. context.Problems.Select(problem => problem.Name)];
     }
 
-    public Problem? GetProblem(string problemName)
+    public Problem? GetProblem(string? problemName)
     {
+        if(problemName is null) return null;
+
         using var context =_dataBaseContextFactory.CreateDbContext();
         return context.Problems.FirstOrDefault(problem => problem.Name == problemName);
     }
@@ -53,25 +57,35 @@ public sealed class ProblemService
         problems?.ForEach(AddProblem);
     }
 
-    public IReadOnlyCollection<Answer> GetHighScores(int problemId, bool fux)
+    public IReadOnlyCollection<(string, int)> GetHighScores(string problemName, bool fux)
     {
         using var context =_dataBaseContextFactory.CreateDbContext();
-        return context.Answers
-            .Where(answer => answer.ProblemId == problemId)
-            .Where(answer => answer.Group.IsFresher == fux)
+        return [.. context.Answers
+            .Include(answer => answer.Group)
+            .Include(answer => answer.Group.GroupMembers)
+            .Include(answer => answer.Problem)
+            .Where(answer => answer.Problem.Name == problemName && answer.Passed == true && answer.Group.IsFresher == fux)
+            .GroupBy(answer => answer.GroupId)
+            .Select(grouping => grouping.OrderBy(answer => answer.Code.Length).First())
+            .AsEnumerable()
             .OrderByDescending(answer => answer.Code.Length)
-            .DistinctBy(answer => answer.GroupId)
-            .ToList();
+            .Select(answer => new ValueTuple<string, int>(answer.Group.Name, answer.Code.Length))];
     }
 
-    public IReadOnlyCollection<Answer> GetLowScores(int problemId, bool fux)
+    public IReadOnlyCollection<(string, int)> GetLowScores(string problemName, bool fux)
     {
         using var context =_dataBaseContextFactory.CreateDbContext();
-        return context.Answers
-            .Where(answer => answer.ProblemId == problemId)
-            .Where(answer => answer.Group.IsFresher == fux)
+        return [.. context.Answers
+            .Include(answer => answer.Group)
+            .Include(answer => answer.Group.GroupMembers)
+            .Include(answer => answer.Problem)
+            .Where(answer => answer.Problem.Name == problemName && answer.Passed == true && answer.Group.IsFresher == fux)
+            .GroupBy(answer => answer.GroupId)
+            .Select(grouping => grouping.OrderBy(answer => answer.Code.Length).First())
+            .AsEnumerable()
             .OrderBy(answer => answer.Code.Length) 
-            .DistinctBy(answer => answer.GroupId)
-            .ToList();
+            .Select(answer => new ValueTuple<string, int>(answer.Group.Name, answer.Code.Length))];
     }
+
+    
 }

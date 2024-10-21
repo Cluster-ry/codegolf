@@ -10,6 +10,7 @@ public class GroupMember
     public int Id { get; set; }
     public string Name { get; set; }
     
+    [ForeignKey(nameof(Group))]
     public int GroupId { get; set; }
     public Group Group { get; set; }
 

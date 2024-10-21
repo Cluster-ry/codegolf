@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/CodeGolf/bin/Debug/net7.0/CodeGolf.dll",
+            "program": "${workspaceFolder}/CodeGolf/bin/Debug/net8.0/CodeGolf.dll",
             "args": [],
             "cwd": "${workspaceFolder}/CodeGolf",
             "stopAtEntry": false,

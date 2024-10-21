@@ -11,9 +11,11 @@ public class Answer
     public string Code { get; set; }
     public bool Passed { get; set; } = false;
 
+    [ForeignKey(nameof(Group))]
     public int GroupId { get; set; }
     public Group Group { get; set; }
 
+    [ForeignKey(nameof(Problem))]
     public int ProblemId { get; set; }
     public Problem Problem { get; set; }
 

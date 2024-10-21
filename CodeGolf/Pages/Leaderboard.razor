@@ -1,13 +1,98 @@
-@page "/leaderboard"
+@page "/leaderboards/{ProblemName}"
 
-<PageTitle>Leaderboard</PageTitle>
+@using CodeGolf.Pages
+@using CodeGolf.Services
+@inject ProblemService ProblemService
+@implements IDisposable
+
+
+<PageTitle>Leaderboard @ProblemName</PageTitle>
 <LayoutView>
-    <h2>Leaderboard</h2>
-    <li><span>Fux</span></li>
-    <li><span>Fux2</span></li>
-    <li><span>Fux3</span></li>
+    <h1>Fux</h1>
+    <LayoutView>
+        <h2>Leaderboard</h2>
+        <table>
+            @foreach (var answer in HighboardFux)
+            {
+                <tr>
+                    <td>@answer.Item1</td>
+                    <td>@answer.Item2</td>
+                </tr>
+            }
+        </table>
+    </LayoutView>
+    <LayoutView>
+        <h2>Loserboard</h2>
+        <table>
+            @foreach (var answer in LowboardFux)
+            {
+                <tr>
+                    <td>@answer.Item1</td>
+                    <td>@answer.Item2</td>
+                </tr>
+            }
+        </table>
+    </LayoutView>
+</LayoutView>
+
+<LayoutView>
+    <h1>Uncle</h1>
+    <LayoutView>
+        <h2>Leaderboard</h2>
+        <table>
+            @foreach (var answer in Highboard)
+            {
+                <tr>
+                    <td>@answer.Item1</td>
+                    <td>@answer.Item2</td>
+                </tr>
+            }
+        </table>
+    </LayoutView>
+    <LayoutView>
+        <h2>Loserboard</h2>
+        <table>
+            @foreach (var answer in Lowboard)
+            {
+                <tr>
+                    <td>@answer.Item1</td>
+                    <td>@answer.Item2</td>
+                </tr>
+            }
+        </table>
+    </LayoutView>
 </LayoutView>
 
 @code{
+    [Parameter]
+    public string ProblemName {get; set;}
+    private System.Timers.Timer updateTimer;
+    public IReadOnlyCollection<(string, int)> HighboardFux {get; set;}
+    public IReadOnlyCollection<(string, int)> LowboardFux {get; set;}
+    public IReadOnlyCollection<(string, int)> Highboard {get; set;}
+    public IReadOnlyCollection<(string, int)> Lowboard {get; set;}
 
+    protected override void OnInitialized()
+    {
+        updateTimer = new(TimeSpan.FromSeconds(10));
+        updateTimer.Elapsed += UpdateTick;
+        UpdateLeaderboards();
+    }
+
+    public void Dispose()
+    {
+        updateTimer.Elapsed -= UpdateTick;
+        updateTimer.Stop();
+        updateTimer.Dispose();
+    }
+
+    private void UpdateTick(object? _sender, System.Timers.ElapsedEventArgs _args) => UpdateLeaderboards();
+
+    private void UpdateLeaderboards()
+    {
+        HighboardFux = ProblemService.GetHighScores(ProblemName, true);
+        LowboardFux = ProblemService.GetLowScores(ProblemName, true);
+        Highboard = ProblemService.GetHighScores(ProblemName, false);
+        Lowboard = ProblemService.GetLowScores(ProblemName, false);
+    }
 }

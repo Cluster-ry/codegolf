@@ -1,10 +1,12 @@
 using System.Diagnostics;
 using Microsoft.CSharp.RuntimeBinder;
 using Xunit.Abstractions;
+using Microsoft.AspNetCore.Builder;
+using CodeGolf.Python;
+
 
 namespace CodeGolf.Tests;
-using CodeGolf.Python;
-using Microsoft.AspNetCore.Builder;
+
 
 public class PythonTests
 {

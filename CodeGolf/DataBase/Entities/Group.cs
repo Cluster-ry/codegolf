@@ -13,8 +13,8 @@ public class Group
     public string Name { get; set; }
     public bool IsFresher { get; set; }
 
-    public DbSet<GroupMember> GroupMembers { get; }
-    public DbSet<Answer> Answers { get; }
+    public List<GroupMember> GroupMembers { get; set; } = new();
+    public List<Answer> Answers { get; set; } = new();
 
     public override string ToString()
     {

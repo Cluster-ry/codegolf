@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace CodeGolf.DataBase.Entities;
 
@@ -12,7 +13,7 @@ public class Problem
     public string Explanation { get; set; }
     public string ExampleSolution { get; set; }
 
-    public List<Answer> Answers { get; } = new List<Answer>();
+    public List<Answer> Answers { get; } = new();
 
     public override string ToString()
     {

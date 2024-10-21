@@ -53,6 +53,11 @@ button {
     font-size: 1em;
 }
 
+.inline {
+    display: flex;
+    gap: 10px;
+}
+
 input[type="text"]:focus {
     outline: none;
     border-color: #0066cc;

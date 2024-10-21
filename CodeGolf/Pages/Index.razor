@@ -13,26 +13,24 @@
 <h1>Hello, world!</h1>
 <p>Welcome to Cluster 2024 Code-golf.</p>
 
-<text>
+<p>
     The aim of this is to finish the following coding tasks with the lowest amount of characters used, just like in real golf.
     You need to gather all your wits and group members and put your working heads together.
-</text>
+</p>
 <div>
 <EditForm Model="@Model" OnValidSubmit="@OnValidSubmit">
-    <text>Who are you?</text>
+    <label>Who are you?</label>
     <DataAnnotationsValidator/>
     <ValidationSummary/>
     <div>
-        <label>
+        <label for="groupName">
             Group name:
-            <InputText @bind-Value="Model!.Name"/>
+            <InputText id="groupName" @bind-Value="Model!.Name"/>
         </label>
     </div>
-    <div>
-        <label>
-            Are you fux?
-            <InputCheckbox @bind-Value="Model!.IsFresher"></InputCheckbox>
-        </label>
+    <div class="inline">
+        <label for="isFux">Are you fux?</label>
+        <InputCheckbox id="isFux" @bind-Value="Model!.IsFresher"></InputCheckbox>
     </div>
     <div>
         <label>

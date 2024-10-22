@@ -19,4 +19,6 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+RUN podman pull docker.io/python:alpine
+
 ENTRYPOINT ["dotnet", "CodeGolf.dll"]

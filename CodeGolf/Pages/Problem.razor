@@ -51,6 +51,7 @@
 @code {
     [Parameter]
     public string ProblemName {get; init;}
+    private string previousProblemName;
 
     public ProblemDefinition? ProblemDefinition {get; private set;}
     public ProblemSubmission? ProblemSubmission {get; private set;}
@@ -63,7 +64,8 @@
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if(!firstRender) return;
+        if(!firstRender && ProblemName == previousProblemName) return;
+        previousProblemName = ProblemName;
 
         ProblemDefinition = LoadProblem();
         ProblemSubmission = await LoadPreviousSubmission();

@@ -89,7 +89,7 @@
 
     private async void OnValidSubmit()
     {
-        Logger.LogInformation("Submitted code:\n{submission}", ProblemSubmission.CurrentSolution);
+        Logger.LogInformation("Submitted code:\n{Submission}", ProblemSubmission.CurrentSolution);
         await ProblemHandler.SaveSubmission(ProblemName, ProblemSubmission.CurrentSolution);
         (bool success, string exampleOutput, string currentOutput) = await ProblemHandler.EvaluateSubmission(ProblemName, ProblemSubmission.CurrentSolution);
 

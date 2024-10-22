@@ -34,10 +34,10 @@ public sealed class EvaluateService
 
         _logger.LogInformation("New submission from group {group} problem {problem}\n{solution}", groupName, problemName, solution);
 
-        var (proposedCode, proposedOutput, proposedException) = await _pythonRunner.ExecutePythonCode(solution).ConfigureAwait(false);
-        var (exampleCode, exampleOutput, exampleException) = await _pythonRunner.ExecutePythonCode(problem.ExampleSolution).ConfigureAwait(false);
+        var (proposedCode, proposedOutput, proposedException) = await _pythonRunner.ExecutePythonCode(solution, problem.Input ?? "").ConfigureAwait(false);
+        var (exampleCode, exampleOutput, exampleException) = await _pythonRunner.ExecutePythonCode(problem.ExampleSolution, problem.Input ?? "").ConfigureAwait(false);
         if(exampleCode != 0) throw new Exception("Error in example code");
-        if(proposedCode != 0) return (false, exampleOutput, proposedOutput);
+        if(proposedCode != 0) return (false, exampleOutput, proposedException);
 
         var sameOutput = String.Equals(exampleOutput, proposedOutput, StringComparison.InvariantCulture);
 

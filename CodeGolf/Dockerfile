@@ -15,7 +15,7 @@ COPY --from=build-env /App/out .
 
 #Install podman
 RUN apt-get update && \
-    apt-get install -y podman && \
+    apt-get install -y podman fuse-overlayfs && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

@@ -26,11 +26,10 @@ public sealed class EvaluateService
 
     public async Task<(bool success, string exampleOutput, string proposedOutput)> TestSolution(string groupName, string problemName, string solution)
     {
-        if(_pythonRunner.Failed) throw new SystemException("Internal python service failed");
         var problem = _problemService.GetProblem(problemName);
-        if(problem is null) throw new Exception($"Failed to load problem with name {problemName}");
+        ArgumentNullException.ThrowIfNull(problem);
         var group = _groupService.GetGroup(groupName);
-        if(group is null) throw new Exception($"Failed to load group with name {problemName}");
+        ArgumentNullException.ThrowIfNull(group, nameof(problem));
 
         _logger.LogInformation("New submission from group {group} problem {problem}\n{solution}", groupName, problemName, solution);
 

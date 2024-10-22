@@ -1,0 +1,14 @@
+name: Cluster CodeGolf
+
+services:
+  dotnet-app:
+    build:
+      context: ./CodeGolf
+      dockerfile: Dockerfile
+    container_name: ClusterCodeGolf
+    ports:
+      - "8080:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    restart: unless-stopped
+    network_mode: host

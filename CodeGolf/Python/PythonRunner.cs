@@ -16,10 +16,7 @@ public sealed class PythonRunner : IDisposable
     private readonly DockerClient? _containerClient;
     private readonly DirectoryInfo submissionDirectory = Directory.CreateTempSubdirectory("CodeGolfSubmissions");
 
-
     public bool Loaded {get; private set;}
-    public bool Failed => Loaded && _containerClient is null;
-
 
     public PythonRunner(ILogger<PythonRunner> logger)
     {
@@ -35,8 +32,6 @@ public sealed class PythonRunner : IDisposable
     }    
 
     private void LoadRunner(){
-        if(Failed) return;
-
         Task.Run(async () => {
             await PullImage(_containerClient!, _lifetimeTokenSource.Token).ConfigureAwait(false);
             Loaded = true;
@@ -45,7 +40,6 @@ public sealed class PythonRunner : IDisposable
 
     public async Task<(long, string, string)> ExecutePythonCode(string pythonCode, string input = "", CancellationToken token = default)
     {
-        if(Failed) throw new ArgumentException("Containerclient failed to load");
         return await RunContainer(_containerClient!, pythonCode, input, _lifetimeTokenSource.Token).ConfigureAwait(false);
     }
 
@@ -140,7 +134,6 @@ public sealed class PythonRunner : IDisposable
     private DockerClient? CreateContainerClient()
     {
         var containerHostUri = GetContainerClientUri();
-        if(string.IsNullOrWhiteSpace(containerHostUri)) return null;
         try{
             //Disposed by client
             #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -150,7 +143,7 @@ public sealed class PythonRunner : IDisposable
         }
         catch(Exception ex){
             _logger.ContainerClientLoadFailed(containerHostUri, ex);
-            return null;
+            throw;
         }
     }
 

@@ -14,9 +14,8 @@
 <div class="Leaderboard">
 <h2>@problem.Key</h2>
 <LayoutView>
-    <h3>Fux</h3>
     <LayoutView>
-        <h4>Leaderboard</h4>
+        <h3>Leaderboard Fux</h3>
         <table>
             @foreach (var answer in problem.Value.HighboardFux)
             {
@@ -28,37 +27,9 @@
         </table>
     </LayoutView>
     <LayoutView>
-        <h4>Loserboard</h4>
-        <table>
-            @foreach (var answer in problem.Value.LowboardFux)
-            {
-                <tr>
-                    <td>@answer.Item1</td>
-                    <td>@answer.Item2</td>
-                </tr>
-            }
-        </table>
-    </LayoutView>
-</LayoutView>
-
-<LayoutView>
-    <h3>Uncle</h3>
-    <LayoutView>
-        <h4>Leaderboard</h4>
+        <h4>Leaderboard Uncle</h4>
         <table>
             @foreach (var answer in problem.Value.Highboard)
-            {
-                <tr>
-                    <td>@answer.Item1</td>
-                    <td>@answer.Item2</td>
-                </tr>
-            }
-        </table>
-    </LayoutView>
-    <LayoutView>
-        <h4>Loserboard</h4>
-        <table>
-            @foreach (var answer in problem.Value.Lowboard)
             {
                 <tr>
                     <td>@answer.Item1</td>
@@ -120,9 +91,7 @@
         public string ProblemName {get; init;}
         public ProblemService ProblemService {get; init;}
         public IReadOnlyCollection<(string, int)> HighboardFux {get; private set;}
-        public IReadOnlyCollection<(string, int)> LowboardFux {get; private set;}
         public IReadOnlyCollection<(string, int)> Highboard {get; private set;}
-        public IReadOnlyCollection<(string, int)> Lowboard {get; private set;}
 
         public Tables(string problemName, ProblemService problemService){
             ProblemName = problemName;
@@ -133,9 +102,7 @@
         public void UpdateLeaderboard()
         {
             HighboardFux = ProblemService.GetHighScores(ProblemName, true);
-            LowboardFux = ProblemService.GetLowScores(ProblemName, true);
             Highboard = ProblemService.GetHighScores(ProblemName, false);
-            Lowboard = ProblemService.GetLowScores(ProblemName, false);
         }
     }
 }

@@ -27,11 +27,11 @@ public sealed class ProblemHandler
         var problem = problemService.GetProblem(problemName);
 
         if(problem is null) {
-            logger.LogWarning("Failed to load problem with {key}. Is the key faulty?", problemName);
+            logger.LogWarning("Failed to load problem with {Key}. Is the key faulty?", problemName);
             return null;
         }
 
-        logger.LogInformation("Loaded problem {problem}", problem);
+        logger.LogInformation("Loaded problem {Problem}", problem);
         return new ProblemDefinition(problem);
     }
 

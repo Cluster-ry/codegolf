@@ -45,12 +45,12 @@
 
 @code{
     private Dictionary<string, Tables> Problems {get;} = new();
-    private System.Timers.Timer updateTimer;
+    private System.Timers.Timer updateTimer = new(TimeSpan.FromMinutes(1));
 
     protected override void OnInitialized()
     {
-        updateTimer = new(TimeSpan.FromSeconds(60));
         updateTimer.Elapsed += UpdateTick;
+        updateTimer.Start();
     }
 
     protected override void OnAfterRender(bool firstRender)

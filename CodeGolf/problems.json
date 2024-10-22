@@ -2,6 +2,13 @@
   {
     "Name": "FuksiPallero",
     "Explanation": "Print numbers 1 to 100 on separate rows so that numbers divisible by 4 are replaced with the word 'Fuksi', numbers divisible by 7 are replaced with 'Pallero' and numbers divisible with both 4 and 7 are replaced with 'FuksiPallero'.",
-    "ExampleSolution": "[print(\"Fuksi\"[5*(i%4):]+\"Pallero\"[7*(i%7):] or i) for i in range(1,101)]"
+    "ExampleSolution": "[print(\"Fuksi\"[5*(i%4):]+\"Pallero\"[7*(i%7):] or i) for i in range(1,101)]",
+    "Input":""
+  },
+  {
+    "Name":"Uwunator",
+    "Explanation":"",
+    "ExampleSolution":"print(input().replace('r', 'w').replace('l', 'w').replace('you', 'uwu').replace('ove', 'wuv').replace('is', 'iws').replace('o', 'wo').replace('e', 'ehe') + ' nya!')",
+    "Input": "As a teekkari, I have come to realize that my primary food groups are pizza, coffee, and the occasional salad (but mostly pizza). Between lectures, we engage in intense discussions about which is superior: the 8-hour sleep or the all-nighter followed by a strong dose of caffeine. Our unofficial motto is 'Why sleep when you can code?'\nDuring exams, we firmly believe that our brain cells are powered by instant noodles, which is why we always keep a stash in our backpacks. Pro tip: always have a friend who can cook, or at least boil water!\nTeekkari events are legendary, with themes ranging from 'Dress as Your Favorite Algorithm' to 'Hack the Cafeteria Menu.' We've even had contests to see who can create the most elaborate sandwich, complete with a side of existential dread.\nDon't even get me started on our annual 'Teekkari Survival Course,' where we learn vital skills like finding the best Wi-Fi spots on campus and how to balance a pizza box while riding a bicycle. It's a tough life, but someone's got to do it!\nRemember, every good teekkari knows that when life gets tough, just add more cheese!"
   }
 ]

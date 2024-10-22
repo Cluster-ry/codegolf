@@ -22,7 +22,7 @@
         {
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href=@($"Problems/{problemKey}")>
-                    <span class="oi oi-plus" aria-hidden="true"></span> FuxBall
+                    <span class="oi oi-plus" aria-hidden="true"></span> @problemKey
                 </NavLink>
             </div>
         }
@@ -30,7 +30,7 @@
         {
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href=@($"leaderboards/{problemKey}")>
-                    <span class="oi oi-list-rich" aria-hidden="true"></span> Leaderboards
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Leaderboards @problemKey
                 </NavLink>
             </div>
         }

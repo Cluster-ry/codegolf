@@ -1,4 +1,4 @@
-@page "/leaderboards/{ProblemName}"
+@page "/leaderboards"
 
 @using CodeGolf.Pages
 @using CodeGolf.Services
@@ -6,13 +6,19 @@
 @implements IDisposable
 
 
-<PageTitle>Leaderboard @ProblemName</PageTitle>
+<PageTitle>Leaderboards</PageTitle>
+<h1>Leaderboards</h1>
+<div class="leaderboard-container">
+@foreach(var problem in Problems)
+{
+<div class="Leaderboard">
+<h2>@problem.Key</h2>
 <LayoutView>
-    <h1>Fux</h1>
+    <h3>Fux</h3>
     <LayoutView>
-        <h2>Leaderboard</h2>
+        <h4>Leaderboard</h4>
         <table>
-            @foreach (var answer in HighboardFux)
+            @foreach (var answer in problem.Value.HighboardFux)
             {
                 <tr>
                     <td>@answer.Item1</td>
@@ -22,9 +28,9 @@
         </table>
     </LayoutView>
     <LayoutView>
-        <h2>Loserboard</h2>
+        <h4>Loserboard</h4>
         <table>
-            @foreach (var answer in LowboardFux)
+            @foreach (var answer in problem.Value.LowboardFux)
             {
                 <tr>
                     <td>@answer.Item1</td>
@@ -36,11 +42,11 @@
 </LayoutView>
 
 <LayoutView>
-    <h1>Uncle</h1>
+    <h3>Uncle</h3>
     <LayoutView>
-        <h2>Leaderboard</h2>
+        <h4>Leaderboard</h4>
         <table>
-            @foreach (var answer in Highboard)
+            @foreach (var answer in problem.Value.Highboard)
             {
                 <tr>
                     <td>@answer.Item1</td>
@@ -50,9 +56,9 @@
         </table>
     </LayoutView>
     <LayoutView>
-        <h2>Loserboard</h2>
+        <h4>Loserboard</h4>
         <table>
-            @foreach (var answer in Lowboard)
+            @foreach (var answer in problem.Value.Lowboard)
             {
                 <tr>
                     <td>@answer.Item1</td>
@@ -62,21 +68,32 @@
         </table>
     </LayoutView>
 </LayoutView>
+</div>
+}
+</div>
 
 @code{
-    [Parameter]
-    public string ProblemName {get; set;}
+    private Dictionary<string, Tables> Problems {get;} = new();
     private System.Timers.Timer updateTimer;
-    public IReadOnlyCollection<(string, int)> HighboardFux {get; set;}
-    public IReadOnlyCollection<(string, int)> LowboardFux {get; set;}
-    public IReadOnlyCollection<(string, int)> Highboard {get; set;}
-    public IReadOnlyCollection<(string, int)> Lowboard {get; set;}
 
     protected override void OnInitialized()
     {
-        updateTimer = new(TimeSpan.FromSeconds(10));
+        updateTimer = new(TimeSpan.FromSeconds(60));
         updateTimer.Elapsed += UpdateTick;
-        UpdateLeaderboards();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if(!firstRender) return;
+
+        var problemNames = ProblemService.GetAllProblems();
+        foreach(var problemName in problemNames)
+        {
+            Problems[problemName] = new Tables(problemName, ProblemService);
+        }
+
+        StateHasChanged();
+        
     }
 
     public void Dispose()
@@ -90,9 +107,35 @@
 
     private void UpdateLeaderboards()
     {
-        HighboardFux = ProblemService.GetHighScores(ProblemName, true);
-        LowboardFux = ProblemService.GetLowScores(ProblemName, true);
-        Highboard = ProblemService.GetHighScores(ProblemName, false);
-        Lowboard = ProblemService.GetLowScores(ProblemName, false);
+        foreach(var table in Problems.Values)
+        {
+            table.UpdateLeaderboard();
+        }
+
+        StateHasChanged();
+    }
+
+    private class Tables
+    {
+        public string ProblemName {get; init;}
+        public ProblemService ProblemService {get; init;}
+        public IReadOnlyCollection<(string, int)> HighboardFux {get; private set;}
+        public IReadOnlyCollection<(string, int)> LowboardFux {get; private set;}
+        public IReadOnlyCollection<(string, int)> Highboard {get; private set;}
+        public IReadOnlyCollection<(string, int)> Lowboard {get; private set;}
+
+        public Tables(string problemName, ProblemService problemService){
+            ProblemName = problemName;
+            ProblemService = problemService;
+            UpdateLeaderboard();
+        }
+
+        public void UpdateLeaderboard()
+        {
+            HighboardFux = ProblemService.GetHighScores(ProblemName, true);
+            LowboardFux = ProblemService.GetLowScores(ProblemName, true);
+            Highboard = ProblemService.GetHighScores(ProblemName, false);
+            Lowboard = ProblemService.GetLowScores(ProblemName, false);
+        }
     }
 }

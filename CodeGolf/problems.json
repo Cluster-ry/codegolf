@@ -2,7 +2,7 @@
   {
     "Name": "FuksiPallero",
     "Explanation": "Print numbers 1 to 100 on separate rows so that numbers divisible by 4 are replaced with the word 'Fuksi', numbers divisible by 7 are replaced with 'Pallero' and numbers divisible with both 4 and 7 are replaced with 'FuksiPallero'.",
-    "ExampleSolution": "[print(\"Fuksi\"[5*(i%4):]+\"Pallero\"[7*(i%7):] or i) for i in range(1,101)]",
+    "ExampleSolution": "[print('Fuksi'[5*(i%4):]+'Pallero'[7*(i%7):] or i) for i in range(1,101)]",
     "Input":""
   },
   {

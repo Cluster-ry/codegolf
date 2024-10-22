@@ -1,18 +1,11 @@
-# Frontend
-    Group info page
-    Task page
-    Records page
+# Front
+Admin page with access to supplied codes.
 
-# Backend
-    Handle submits and get dataids from websites.
+# Back
+Reintroduce sqlite as a database.
 
+# Infra
+Branch protect main.
 
-# Database Eetu
-    Database and connection
-    
-# Testing Konsta
-    Task
-
-# Task
-    FizzBuzz, mutta fuksipallero
-
+# Problems
+Create more fun problems

@@ -14,18 +14,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0@sha256:6c4df091e4e531bb93bdbfe7e7f0998e
 WORKDIR /App
 COPY --from=build-env /App/out .
 
-#Update sources as we need modern podman
-RUN sed -i 's|bookworm|trixie|g' /etc/apt/sources.list.d/debian.sources \
-    && apt-get update \
-    && apt-get upgrade -y
-
 # Install Podman
-RUN apt-get install -y podman && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-COPY python-alpine.tar /tmp/python-alpine.tar
-RUN podman load --input /tmp/python-alpine.tar && rm /tmp/python-alpine.tar
-RUN podman info
+RUN apt-get update \
+    && apt-get install -y podman \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 ENTRYPOINT ["dotnet", "CodeGolf.dll"]

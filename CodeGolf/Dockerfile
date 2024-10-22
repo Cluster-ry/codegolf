@@ -26,5 +26,6 @@ RUN apt-get install -y podman && \
 
 COPY python-alpine.tar /tmp/python-alpine.tar
 RUN podman load --input /tmp/python-alpine.tar && rm /tmp/python-alpine.tar
+RUN podman info
 
 ENTRYPOINT ["dotnet", "CodeGolf.dll"]

@@ -19,6 +19,8 @@ public sealed class GroupService
 
     public void RegisterGroup(GroupSubmission groupSubmission)
     {
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(groupSubmission?.Name);
+
         using var databaseContext = _dataBaseContextFactory.CreateDbContext();
         var group = new Group(){
             Name = groupSubmission.Name,

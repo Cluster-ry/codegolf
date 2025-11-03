@@ -40,7 +40,8 @@ public sealed class PythonRunner : IDisposable
 
     public async Task<(long, string, string)> ExecutePythonCode(string pythonCode, string input = "", CancellationToken token = default)
     {
-        return await RunContainer(_containerClient!, pythonCode, input, _lifetimeTokenSource.Token).ConfigureAwait(false);
+        using var combinedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token, _lifetimeTokenSource.Token);
+        return await RunContainer(_containerClient!, pythonCode, input, combinedTokenSource.Token).ConfigureAwait(false);
     }
 
     private async Task PullImage(DockerClient client, CancellationToken token)
@@ -136,7 +137,7 @@ public sealed class PythonRunner : IDisposable
         var containerHostUri = GetContainerClientUri();
         try{
             //Disposed by client
-            #pragma warning disable CA2000 // Dispose objects before losing scope
+            #pragma warning disable CA2000 // Dispose objects before losing scope 
             var containerClientConfiguration = new DockerClientConfiguration(new Uri(containerHostUri));
             #pragma warning restore CA2000 // Dispose objects before losing scope
             return containerClientConfiguration.CreateClient();

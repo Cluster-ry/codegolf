@@ -43,4 +43,7 @@ public static partial class Log
 
     [LoggerMessage(EventId = 9, Level = LogLevel.Information, Message = "Container `{containerId}` timed out `{maxTime}`")]
     public static partial void ContainerTimeout(this ILogger logger, string containerId, TimeSpan maxTime, TimeoutException ex);
+    
+    [LoggerMessage(EventId = 10, Level = LogLevel.Information, Message = "New submission from group {Group} problem {Problem}\n{Solution}")]
+    public static partial void NewSubmission(this ILogger logger, string group, string problem, string solution);
 }

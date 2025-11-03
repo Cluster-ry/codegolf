@@ -1,6 +1,7 @@
 using CodeGolf.Python;
 using CodeGolf.DataBase;
 using CodeGolf.DataBase.Entities;
+using CodeGolf.Tools;
 using Microsoft.EntityFrameworkCore;
 
 namespace CodeGolf.Services;
@@ -29,7 +30,7 @@ public sealed class EvaluateService
         var group = _groupService.GetGroup(groupName);
         ArgumentNullException.ThrowIfNull(group);
 
-        _logger.LogInformation("New submission from group {Group} problem {Problem}\n{Solution}", groupName, problemName, solution);
+        _logger.NewSubmission(groupName, problemName, solution);
 
         var proposedTask = _pythonRunner.ExecutePythonCode(solution, problem.Input ?? "");
         var exampleTask = _pythonRunner.ExecutePythonCode(problem.ExampleSolution, problem.Input ?? "");

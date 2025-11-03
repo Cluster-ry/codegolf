@@ -12,6 +12,7 @@ public class Problem
     public string Name { get; set; }
     public string Explanation { get; set; }
     public string ExampleSolution { get; set; }
+    public string? ExampleOutput { get; set; }
     public string Input {get; set;}
 
     public List<Answer> Answers { get; } = new();

@@ -35,10 +35,11 @@ if (!app.Environment.IsDevelopment())
 }
 
 //Do initial loading
-
 _ = app.Services.GetRequiredService<PythonRunner>();
 var problemService = app.Services.GetRequiredService<ProblemService>();
 problemService.InitializeProblems();
+var evaluateService = app.Services.GetRequiredService<EvaluateService>();
+evaluateService.LoadExampleResults().Wait();
 
 app.UseHttpsRedirection();
 

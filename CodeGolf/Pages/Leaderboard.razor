@@ -1,5 +1,6 @@
 @page "/leaderboards"
 
+@using System.Collections.Concurrent
 @using CodeGolf.Pages
 @using CodeGolf.Services
 @inject ProblemService ProblemService
@@ -9,43 +10,74 @@
 <PageTitle>Leaderboards</PageTitle>
 <h1>Leaderboards</h1>
 <div class="leaderboard-container">
-@foreach(var problem in Problems)
-{
-<div class="Leaderboard">
-<h2>@problem.Key</h2>
-<LayoutView>
+    <h2>Total</h2>
     <LayoutView>
-        <h3>Leaderboard Fux</h3>
-        <table>
-            @foreach (var answer in problem.Value.HighboardFux)
-            {
-                <tr>
-                    <td>@answer.Item1</td>
-                    <td>@answer.Item2</td>
-                </tr>
-            }
-        </table>
+        <LayoutView>
+            <h3>Leaderboard Fux</h3>
+            <table>
+                @foreach (var total in totalsFux)
+                {
+                    <tr>
+                        <td>@total.Key</td>
+                        <td>@total.Value</td>
+                    </tr>
+                }
+
+            </table>
+        </LayoutView>
+        <LayoutView>
+            <h3>Leaderboard Uncle</h3>
+            <table>
+                @foreach (var total in totalsFux)
+                {
+                    <tr>
+                        <td>@total.Key</td>
+                        <td>@total.Value</td>
+                    </tr>
+                }
+            </table>
+        </LayoutView>
     </LayoutView>
-    <LayoutView>
-        <h4>Leaderboard Uncle</h4>
-        <table>
-            @foreach (var answer in problem.Value.Highboard)
-            {
-                <tr>
-                    <td>@answer.Item1</td>
-                    <td>@answer.Item2</td>
-                </tr>
-            }
-        </table>
-    </LayoutView>
-</LayoutView>
-</div>
-}
+    
+    
+    <h2>Per problem</h2>
+    @foreach (var problem in problems)
+    {
+        <h2>@problem.Key</h2>
+        <LayoutView>
+            <LayoutView>
+                <h3>Leaderboard Fux</h3>
+                <table>
+                    @foreach (var answer in problem.Value.HighboardFux)
+                    {
+                        <tr>
+                            <td>@answer.Item1</td>
+                            <td>@answer.Item2</td>
+                        </tr>
+                    }
+                </table>
+            </LayoutView>
+            <LayoutView>
+                <h4>Leaderboard Uncle</h4>
+                <table>
+                    @foreach (var answer in problem.Value.Highboard)
+                    {
+                        <tr>
+                            <td>@answer.Item1</td>
+                            <td>@answer.Item2</td>
+                        </tr>
+                    }
+                </table>
+            </LayoutView>
+        </LayoutView>
+    }
 </div>
 
 @code{
-    private Dictionary<string, Tables> Problems {get;} = new();
-    private System.Timers.Timer updateTimer = new(TimeSpan.FromMinutes(1));
+    private readonly ConcurrentDictionary<String, int> totalsUncle = [];
+    private readonly ConcurrentDictionary<String, int> totalsFux = [];
+    private readonly ConcurrentDictionary<string, Tables> problems = [];
+    private readonly System.Timers.Timer updateTimer = new(TimeSpan.FromMinutes(1));
 
     protected override void OnInitialized()
     {
@@ -60,7 +92,7 @@
         var problemNames = ProblemService.GetAllProblems();
         foreach(var problemName in problemNames)
         {
-            Problems[problemName] = new Tables(problemName, ProblemService);
+            problems[problemName] = new Tables(problemName, ProblemService);
         }
 
         StateHasChanged();
@@ -78,11 +110,30 @@
 
     private void UpdateLeaderboards()
     {
-        foreach(var table in Problems.Values)
+        foreach (var table in problems.Values)
         {
             table.UpdateLeaderboard();
-        }
+            foreach (var row in table.HighboardFux)
+            {
+                var score = 100 - row.Item2;
+                totalsFux.AddOrUpdate(
+                    row.Item1,
+                    static (key, newValue) => newValue,
+                    static (key, previousValue, newValue) => previousValue + newValue,
+                    score);
+            }
 
+            foreach (var row in table.Highboard)
+            {
+                var score = 100 - row.Item2;
+                totalsUncle.AddOrUpdate(
+                    row.Item1,
+                    static (key, newValue) => newValue,
+                    static (key, previousValue, newValue) => previousValue + newValue,
+                    score);
+            }
+        }
+        
         StateHasChanged();
     }
 

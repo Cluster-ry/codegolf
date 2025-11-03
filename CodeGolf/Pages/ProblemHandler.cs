@@ -48,7 +48,7 @@ public sealed class ProblemHandler
         await localStorage.SetAsync(StorageAnswerKey(problemName), submission).ConfigureAwait(false);
     }
 
-    public async Task<(bool, string, string)> EvaluateSubmission(string problemName, string submission)
+    public async Task<(bool, string)> EvaluateSubmission(string problemName, string submission)
     {
         var groupInfo = await groupHandler.Load().ConfigureAwait(false);   
         return await evaluateService.TestSolution(groupInfo.Name, problemName, submission).ConfigureAwait(false);
@@ -63,7 +63,6 @@ public sealed record ProblemSubmission
     public required string ProblemName {get; init;} 
     
     public string CurrentSolution {get; set;} = "";
-    public string ExampleOutput {get; set;} = "";
     public string CurrentOutput {get; set;} = "";
     public bool Success {get; set;}
     public int SubmissionLength => CurrentSolution.Length;
@@ -74,6 +73,7 @@ public sealed record ProblemDefinition
     public string ProblemName {get; init;}
     public string Title {get; private set;} = "Problem Title";
     public string Explanation {get; private set;} = "No problem loaded";
+    public string ExampleOutput {get; private set;} = "";
 
 
     public ProblemDefinition(DataBase.Entities.Problem dbProblem)
@@ -83,5 +83,6 @@ public sealed record ProblemDefinition
         ProblemName = dbProblem.Name;
         Title = dbProblem.Name;
         Explanation = dbProblem.Explanation;
+        ExampleOutput = dbProblem.ExampleOutput;
     }
 }

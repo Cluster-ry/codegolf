@@ -32,7 +32,7 @@
     Example Output:
     <blockquote>
         <pre>
-        <code>@ProblemSubmission?.ExampleOutput</code>
+        <code>@ProblemDefinition?.ExampleOutput</code>
         </pre>
     </blockquote>
 </label>
@@ -87,14 +87,13 @@
         };
     }
 
-    private async void OnValidSubmit()
+    private async Task OnValidSubmit()
     {
         Logger.LogInformation("Submitted code:\n{Submission}", ProblemSubmission.CurrentSolution);
         await ProblemHandler.SaveSubmission(ProblemName, ProblemSubmission.CurrentSolution);
-        (bool success, string exampleOutput, string currentOutput) = await ProblemHandler.EvaluateSubmission(ProblemName, ProblemSubmission.CurrentSolution);
+        (bool success, string currentOutput) = await ProblemHandler.EvaluateSubmission(ProblemName, ProblemSubmission.CurrentSolution);
 
         ProblemSubmission.CurrentOutput = currentOutput;
-        ProblemSubmission.ExampleOutput = exampleOutput;
         ProblemSubmission.Success = success;
         StateHasChanged();
     }

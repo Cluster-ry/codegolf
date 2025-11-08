@@ -62,16 +62,23 @@ public sealed class PythonRunner : IDisposable
     {
         var filePath = Path.Combine(submissionDirectory.FullName, Path.GetRandomFileName());
         await File.WriteAllTextAsync(filePath, pythonCode, token).ConfigureAwait(false);
-
-
+        
+        //TODO add more restricted hostConfig so to not allow dos
         var config = new CreateContainerParameters(){
             Image = pythonContainer,
             Cmd = ["python", "submission.py"],
             OpenStdin = true,
             StdinOnce = true,
-            HostConfig = new HostConfig(){
+            User = "nobody",
+            HostConfig = new HostConfig()
+            {
                 NetworkMode = "none",
-                Binds = [$"{filePath}:/submission.py"]
+                Memory = 256 * 1024 * 1024, //256MB
+                ReadonlyRootfs = true,
+                NanoCPUs = 250_000_000, //0.25 CPNanoCPUs = 250_U
+                PidsLimit = 64,
+                CapDrop = ["ALL"],
+                Binds = [$"{filePath}:/submission.py:ro"]
             }
         };
         

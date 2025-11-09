@@ -87,16 +87,16 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
-        if(!firstRender) return;
+        if (!firstRender) return;
 
         var problemNames = ProblemService.GetAllProblems();
-        foreach(var problemName in problemNames)
+        foreach (var problemName in problemNames)
         {
             problems[problemName] = new Tables(problemName, ProblemService);
         }
 
         StateHasChanged();
-        
+
     }
 
     public void Dispose()
@@ -108,34 +108,42 @@
 
     private void UpdateTick(object? _sender, System.Timers.ElapsedEventArgs _args) => UpdateLeaderboards();
 
-    private void UpdateLeaderboards()
+    private async Task UpdateLeaderboards()
     {
         foreach (var table in problems.Values)
         {
             table.UpdateLeaderboard();
-            foreach (var row in table.HighboardFux)
+        }
+
+        await InvokeAsync(() =>
+        {
+            foreach (var table in problems.Values)
             {
-                var score = 100 - row.Item2;
-                totalsFux.AddOrUpdate(
-                    row.Item1,
-                    static (key, newValue) => newValue,
-                    static (key, previousValue, newValue) => previousValue + newValue,
-                    score);
+                foreach (var row in table.HighboardFux)
+                {
+                    var score = 100 - row.Item2;
+                    totalsFux.AddOrUpdate(
+                        row.Item1,
+                        static (key, newValue) => newValue,
+                        static (key, previousValue, newValue) => previousValue + newValue,
+                        score);
+                }
+
+                foreach (var row in table.Highboard)
+                {
+                    var score = 100 - row.Item2;
+                    totalsUncle.AddOrUpdate(
+                        row.Item1,
+                        static (key, newValue) => newValue,
+                        static (key, previousValue, newValue) => previousValue + newValue,
+                        score);
+                }
             }
 
-            foreach (var row in table.Highboard)
-            {
-                var score = 100 - row.Item2;
-                totalsUncle.AddOrUpdate(
-                    row.Item1,
-                    static (key, newValue) => newValue,
-                    static (key, previousValue, newValue) => previousValue + newValue,
-                    score);
-            }
-        }
-        
-        StateHasChanged();
+            StateHasChanged();
+        });
     }
+    
 
     private class Tables
     {

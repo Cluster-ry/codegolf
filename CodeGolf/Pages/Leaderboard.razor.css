@@ -1,82 +1,284 @@
-/* General styles for the leaderboard container */
-.leaderboard-container {
-    max-width: 1200px; /* Limit the width for better readability */
-    margin: 0 auto; /* Center the container */
-    padding: 20px; /* Add some padding */
-    font-family: 'Arial', sans-serif; /* Use a clean font */
-    background-color: #f9f9f9; /* Light background color */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    display: flex; /* Use flexbox layout */
-    flex-direction: row; /* Stack children horizontally */
+.leaderboard-page {
+    max-width: 1080px;
+    margin: 0 auto 2.5rem;
+    color: #1f2933;
+}
+
+.page-header {
+    padding: 1.5rem 1.75rem 1.6rem;
+    margin-bottom: 1.75rem;
+    border-radius: 16px;
+    color: #f8f6fb;
+    background:
+        radial-gradient(circle at 88% 12%, rgba(255, 255, 255, 0.18), transparent 32%),
+        linear-gradient(135deg, rgb(5, 39, 103) 0%, #3a0647 78%);
+    box-shadow: 0 10px 24px rgba(20, 16, 40, 0.18);
+}
+
+.eyebrow {
+    margin: 0 0 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.page-header h1 {
+    margin: 0;
+    color: #fff;
+    font-size: 2.1rem;
+    letter-spacing: -0.03em;
+}
+
+.lede {
+    max-width: 42rem;
+    margin: 0.7rem 0 0;
+    color: rgba(248, 246, 251, 0.86);
+    font-size: 1.02rem;
+    line-height: 1.5;
+}
+
+.board-section {
+    margin-bottom: 2rem;
+}
+
+.section-heading {
+    display: flex;
     flex-wrap: wrap;
-    justify-content: space-around;
-    align-items: stretch;
-    gap: 20px; /* Space between sections */
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.4rem 1rem;
+    margin-bottom: 0.9rem;
 }
 
-.leaderboard {
-    max-width: 1200px; /* Limit the width for better readability */
-    margin: 0 auto; /* Center the container */
-    padding: 20px; /* Add some padding */
-    font-family: 'Arial', sans-serif; /* Use a clean font */
-    background-color: #f9f9f9; /* Light background color */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    display: block; /* Use flexbox layout */
-    gap: 20px; /* Space between sections */
+.section-heading h2,
+.problem-heading h3 {
+    margin: 0;
+    color: #12315c;
+    font-size: 1.25rem;
 }
 
-/* Styles for headings */
-h1 {
-    text-align: center; /* Center the main title */
-    color: #333; /* Darker color for contrast */
+.section-heading p {
+    margin: 0;
+    color: #5b6775;
+    font-size: 0.95rem;
 }
 
-h2 {
-    margin-top: 40px; /* Space between problems */
-    color: #007bff; /* Primary color for problem names */
+.board-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
 }
 
-h3 {
-    margin-top: 30px; /* Space for section headings */
-    color: #555; /* Secondary color for fux and uncle */
+.problem-board {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid #e6eaf0;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(18, 32, 56, 0.06);
 }
 
-h4 {
-    margin: 20px 0; /* Space for leaderboard headings */
-    color: #444; /* Slightly darker color for contrast */
+.problem-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
 }
 
-/* Table styles */
+.problem-link {
+    flex-shrink: 0;
+    color: #0066cc;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.problem-link:hover {
+    text-decoration: underline;
+}
+
+.scoreboard {
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid #e6eaf0;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(18, 32, 56, 0.05);
+}
+
+.scoreboard.fux {
+    border-top: 4px solid #7b2cbf;
+}
+
+.scoreboard.uncle {
+    border-top: 4px solid #1b6ec2;
+}
+
+.scoreboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem 0.7rem;
+    background: #f7f9fc;
+}
+
+.scoreboard.fux .scoreboard-header {
+    background: linear-gradient(180deg, #f7efff 0%, #fbf8ff 100%);
+}
+
+.scoreboard.uncle .scoreboard-header {
+    background: linear-gradient(180deg, #eef5fc 0%, #f7fbff 100%);
+}
+
+.scoreboard-header h3 {
+    margin: 0;
+    color: #243447;
+    font-size: 1.05rem;
+}
+
+.unit-label {
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(36, 52, 71, 0.08);
+    color: #4b5a6a;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
 table {
-    width: 100%; /* Full width for tables */
-    border-collapse: collapse; /* Collapse borders */
-    margin-bottom: 40px; /* Space below tables */
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 0.7rem 1rem;
+    text-align: left;
+    vertical-align: middle;
+}
+
+th {
+    color: #6b7785;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #edf1f5;
 }
 
 td {
-    padding: 10px; /* Space inside table cells */
-    border-bottom: 1px solid #ddd; /* Light border for separation */
-    text-align: left; /* Left-align text */
+    border-bottom: 1px solid #f0f3f7;
 }
 
-td:last-child {
-    text-align: right; /* Align score to the right */
+tbody tr:last-child td {
+    border-bottom: 0;
 }
 
-/* Alternate row colors for better readability */
-tr:nth-child(even) {
-    background-color: #f2f2f2; /* Light gray for even rows */
+tbody tr:hover {
+    background: #f8fafc;
 }
 
-/* Responsive design */
+.col-rank {
+    width: 3.2rem;
+}
+
+.col-score {
+    width: 4.5rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: #12315c;
+}
+
+.col-name {
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 999px;
+    background: #e8eef5;
+    color: #445566;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.podium-1 {
+    background: linear-gradient(90deg, #fff8e1 0%, #fff 58%);
+}
+
+.podium-2 {
+    background: linear-gradient(90deg, #f3f5f8 0%, #fff 58%);
+}
+
+.podium-3 {
+    background: linear-gradient(90deg, #f8eee6 0%, #fff 58%);
+}
+
+.podium-1 .rank {
+    background: #f4c430;
+    color: #3a2a00;
+}
+
+.podium-2 .rank {
+    background: #c5ced8;
+    color: #243040;
+}
+
+.podium-3 .rank {
+    background: #d08b4c;
+    color: #2a1400;
+}
+
+.empty-state {
+    margin: 0;
+    padding: 1.4rem 1rem;
+    color: #6b7785;
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+.section-empty {
+    background: #fff;
+    border: 1px dashed #d5dde6;
+    border-radius: 12px;
+}
+
 @media (max-width: 768px) {
-    h1, h2, h3, h4 {
-        font-size: 1.2em; /* Smaller font sizes on smaller screens */
+    .page-header {
+        padding: 1.2rem 1.15rem 1.3rem;
     }
 
+    .page-header h1 {
+        font-size: 1.65rem;
+    }
+
+    .board-grid,
+    .problem-heading,
+    .section-heading {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .board-grid {
+        gap: 0.85rem;
+    }
+
+    th,
     td {
-        font-size: 0.9em; /* Slightly smaller text in tables */
+        padding: 0.65rem 0.8rem;
+        font-size: 0.92rem;
     }
 }

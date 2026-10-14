@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using System.ComponentModel.DataAnnotations;
 using CodeGolf.Services;
+using CodeGolf.Tools;
 
 
 namespace CodeGolf.Pages;
@@ -12,14 +13,16 @@ public sealed class ProblemHandler
     private readonly GroupHandler groupHandler;
     private readonly ProtectedLocalStorage localStorage;
     private readonly ILogger<ProblemHandler> logger;
+    private readonly ILogger<UserActivityLog> userActivity;
 
-    public ProblemHandler(EvaluateService evaluateService, ProblemService problemService, GroupHandler groupHandler, ProtectedLocalStorage localStorage, ILogger<ProblemHandler> logger)
+    public ProblemHandler(EvaluateService evaluateService, ProblemService problemService, GroupHandler groupHandler, ProtectedLocalStorage localStorage, ILogger<ProblemHandler> logger, ILogger<UserActivityLog> userActivity)
     {
         this.evaluateService = evaluateService;
         this.problemService = problemService;
         this.groupHandler = groupHandler;
         this.localStorage = localStorage;
         this.logger = logger;
+        this.userActivity = userActivity;
     }
 
     public ProblemDefinition? LoadDefinition(string problemName)
@@ -31,7 +34,7 @@ public sealed class ProblemHandler
             return null;
         }
 
-        logger.LogInformation("Loaded problem {Problem}", problem);
+        logger.LogDebug("Loaded problem {Problem}", problem.Name);
         return new ProblemDefinition(problem);
     }
 
@@ -52,6 +55,7 @@ public sealed class ProblemHandler
         var groupInfo = await groupHandler.Load();
         if (groupInfo is null || string.IsNullOrWhiteSpace(groupInfo.Name))
         {
+            userActivity.UserSubmissionWithoutGroup(problemName, submission.Length);
             return (false, "Register your group on the home page before submitting solutions.");
         }
 

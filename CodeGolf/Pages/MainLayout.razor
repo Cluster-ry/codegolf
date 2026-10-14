@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
-
+@implements IDisposable
+@inject NavigationManager Navigation
+@inject ILogger<UserActivityLog> UserActivity
 
 <PageTitle>CodeGolf</PageTitle>
 
@@ -19,3 +21,26 @@
         </article>
     </main>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+        LogPageView(Navigation.ToBaseRelativePath(Navigation.Uri));
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs args)
+        => LogPageView(Navigation.ToBaseRelativePath(args.Location));
+
+    private void LogPageView(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            path = "/";
+        }
+
+        UserActivity.UserPageView(path);
+    }
+
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+}

@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# ASP.NET Data Protection key ring (local dev)
+CodeGolf/DataProtection-Keys/
+
 # User-specific files
 *.rsuser
 *.suo

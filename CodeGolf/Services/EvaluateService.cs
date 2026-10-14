@@ -13,15 +13,17 @@ public sealed class EvaluateService
     private readonly ProblemService _problemService;
     private readonly GroupService _groupService;
     private readonly IDbContextFactory<DataBaseContext> _dataBaseContextFactory;
-    private readonly ILogger<ProblemService> _logger;
+    private readonly ILogger<EvaluateService> _logger;
+    private readonly ILogger<UserActivityLog> _userActivity;
 
-    public EvaluateService(PythonRunner pythonRunner, ProblemService problemService, GroupService groupService, IDbContextFactory<DataBaseContext> dataBaseContextFactory, ILogger<ProblemService> logger)
+    public EvaluateService(PythonRunner pythonRunner, ProblemService problemService, GroupService groupService, IDbContextFactory<DataBaseContext> dataBaseContextFactory, ILogger<EvaluateService> logger, ILogger<UserActivityLog> userActivity)
     {
         _pythonRunner = pythonRunner;
         _problemService = problemService;
         _groupService = groupService;
         _dataBaseContextFactory = dataBaseContextFactory;
         _logger = logger;
+        _userActivity = userActivity;
     }
 
     public async Task LoadExampleResults(CancellationToken token = default)
@@ -50,14 +52,19 @@ public sealed class EvaluateService
         var group = _groupService.GetGroup(groupName);
         ArgumentNullException.ThrowIfNull(group);
 
-        _logger.NewSubmission(groupName, problemName, solution);
+        _logger.SubmissionCode(groupName, problemName, solution.Length, solution);
         var (proposedCode, proposedOutput, proposedException) = await _pythonRunner.ExecutePythonCode(solution, problem.Input ?? "", token).ConfigureAwait(false);
         
-        if(proposedCode != 0) return (false, proposedException);
+        if(proposedCode != 0)
+        {
+            _userActivity.UserSubmissionEvaluated(groupName, problemName, solution.Length, passed: false);
+            return (false, proposedException);
+        }
 
         var sameOutput = String.Equals(problem.ExampleOutput, proposedOutput, StringComparison.Ordinal);
 
         UpdateSubmission(solution, sameOutput, group.Id, problem.Id);
+        _userActivity.UserSubmissionEvaluated(groupName, problemName, solution.Length, sameOutput);
         return (sameOutput, proposedOutput);
     }
 

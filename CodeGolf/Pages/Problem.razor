@@ -6,7 +6,6 @@
 
 @using System.ComponentModel.DataAnnotations;
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
-@inject ILogger<Problem> Logger
 @inject GroupHandler GroupHandler
 @inject ProblemHandler ProblemHandler
 
@@ -120,7 +119,6 @@
 
         try
         {
-            Logger.LogInformation("Submitted code:\n{Submission}", ProblemSubmission.CurrentSolution);
             await ProblemHandler.SaveSubmission(ProblemName, ProblemSubmission.CurrentSolution);
             (bool success, string currentOutput) = await ProblemHandler.EvaluateSubmission(
                 ProblemName, ProblemSubmission.CurrentSolution);

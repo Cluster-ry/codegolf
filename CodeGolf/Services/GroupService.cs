@@ -1,6 +1,7 @@
 ﻿using CodeGolf.Pages;
 using CodeGolf.DataBase;
 using CodeGolf.DataBase.Entities;
+using CodeGolf.Tools;
 using Microsoft.EntityFrameworkCore;
 
 namespace CodeGolf.Services;
@@ -18,11 +19,13 @@ public sealed class GroupService
 {
     private readonly IDbContextFactory<DataBaseContext> _dataBaseContextFactory;
     private readonly ILogger<GroupService> _logger;
+    private readonly ILogger<UserActivityLog> _userActivity;
 
-    public GroupService(IDbContextFactory<DataBaseContext> dataBaseContextFactory, ILogger<GroupService> logger)
+    public GroupService(IDbContextFactory<DataBaseContext> dataBaseContextFactory, ILogger<GroupService> logger, ILogger<UserActivityLog> userActivity)
     {
         _dataBaseContextFactory = dataBaseContextFactory;
         _logger = logger;
+        _userActivity = userActivity;
     }
 
 
@@ -35,7 +38,7 @@ public sealed class GroupService
         using var databaseContext = _dataBaseContextFactory.CreateDbContext();
         if (databaseContext.Groups.Any(group => group.Name == name))
         {
-            _logger.LogInformation("Group registration rejected: name {GroupName} already exists", name);
+            _userActivity.UserGroupRegistrationFailed(name, "name already registered");
             return new GroupRegistrationResult(
                 GroupRegistrationStatus.AlreadyExists,
                 $"A group named \"{name}\" is already registered. Choose a different name.");
@@ -70,12 +73,13 @@ public sealed class GroupService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to register group {GroupName}", name);
+            _userActivity.UserGroupRegistrationFailed(name, "save failed");
             return new GroupRegistrationResult(
                 GroupRegistrationStatus.Failed,
                 "Something went wrong while saving your group. Please try again.");
         }
 
-        _logger.LogInformation("Registered group {GroupName}", name);
+        _userActivity.UserGroupRegistered(name);
         return new GroupRegistrationResult(
             GroupRegistrationStatus.Success,
             $"Group \"{name}\" is registered. You can start submitting solutions.");

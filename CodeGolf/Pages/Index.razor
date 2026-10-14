@@ -6,6 +6,7 @@
 
 @inject GroupHandler GroupHandler
 @inject ILogger<Index> Logger
+@inject ILogger<UserActivityLog> UserActivity
 @inject GroupService GroupService
 
 <PageTitle>Index</PageTitle>
@@ -82,7 +83,8 @@
         var result = await GroupHandler.Load();
         
         if(result is null) return;
-        
+
+        UserActivity.UserSessionRestored(result.Name, result.IsFresher);
         Model = result;
         StateHasChanged();
     }
@@ -100,7 +102,9 @@
 
         try
         {
-            Logger.LogInformation($"Submitted group {Model}");
+            var memberCount = new[] { Model.GroupMember0, Model.GroupMember1, Model.GroupMember2 }
+                .Count(member => !string.IsNullOrWhiteSpace(member));
+            UserActivity.UserRegisteringGroup(Model.Name.Trim(), Model.IsFresher, memberCount);
             var result = GroupService.RegisterGroup(Model);
 
             registrationSucceeded = result.Status == GroupRegistrationStatus.Success;

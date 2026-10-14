@@ -4,6 +4,7 @@
 @using CodeGolf.Pages
 @using CodeGolf.Services
 @inject ProblemService ProblemService
+@inject ILogger<UserActivityLog> UserActivity
 @implements IDisposable
 
 <PageTitle>Leaderboards</PageTitle>
@@ -119,6 +120,7 @@
             problems[problemName] = new Tables(problemName, ProblemService);
         }
 
+        UserActivity.UserViewingLeaderboards(problemNames.Count);
         _ = UpdateLeaderboards();
     }
 

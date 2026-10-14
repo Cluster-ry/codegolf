@@ -6,78 +6,102 @@
 @inject ProblemService ProblemService
 @implements IDisposable
 
-
 <PageTitle>Leaderboards</PageTitle>
-<h1>Leaderboards</h1>
-<div class="leaderboard-container">
-    <h2>Total</h2>
-    <LayoutView>
-        <LayoutView>
-            <h3>Leaderboard Fux</h3>
-            <table>
-                @foreach (var total in totalsFux)
-                {
-                    <tr>
-                        <td>@total.Key</td>
-                        <td>@total.Value</td>
-                    </tr>
-                }
 
-            </table>
-        </LayoutView>
-        <LayoutView>
-            <h3>Leaderboard Uncle</h3>
-            <table>
-                @foreach (var total in totalsFux)
-                {
-                    <tr>
-                        <td>@total.Key</td>
-                        <td>@total.Value</td>
-                    </tr>
-                }
-            </table>
-        </LayoutView>
-    </LayoutView>
-    
-    
-    <h2>Per problem</h2>
-    @foreach (var problem in problems)
-    {
-        <h2>@problem.Key</h2>
-        <LayoutView>
-            <LayoutView>
-                <h3>Leaderboard Fux</h3>
-                <table>
-                    @foreach (var answer in problem.Value.HighboardFux)
-                    {
-                        <tr>
-                            <td>@answer.Item1</td>
-                            <td>@answer.Item2</td>
-                        </tr>
-                    }
-                </table>
-            </LayoutView>
-            <LayoutView>
-                <h4>Leaderboard Uncle</h4>
-                <table>
-                    @foreach (var answer in problem.Value.Highboard)
-                    {
-                        <tr>
-                            <td>@answer.Item1</td>
-                            <td>@answer.Item2</td>
-                        </tr>
-                    }
-                </table>
-            </LayoutView>
-        </LayoutView>
-    }
+<div class="leaderboard-page">
+    <header class="page-header">
+        <p class="eyebrow">Code Golf</p>
+        <h1>Leaderboards</h1>
+        <p class="lede">Shortest passing solutions win. Overall points are 100 minus character count, summed across problems.</p>
+    </header>
+
+    <section class="board-section">
+        <div class="section-heading">
+            <h2>Overall standings</h2>
+            <p>Combined points from every solved problem.</p>
+        </div>
+        <div class="board-grid">
+            @foreach (var board in OverallBoards)
+            {
+                @BoardCard(board)
+            }
+        </div>
+    </section>
+
+    <section class="board-section">
+        <div class="section-heading">
+            <h2>Per problem</h2>
+            <p>Ranked by solution length. Lower is better.</p>
+        </div>
+
+        @if (problems.IsEmpty)
+        {
+            <p class="empty-state section-empty">Problems will appear here once they are loaded.</p>
+        }
+        else
+        {
+            @foreach (var problem in problems.OrderBy(entry => entry.Key, StringComparer.OrdinalIgnoreCase))
+            {
+                <article class="problem-board">
+                    <div class="problem-heading">
+                        <h3>@problem.Key</h3>
+                        <a class="problem-link" href=@($"Problems/{problem.Key}")>Open problem</a>
+                    </div>
+                    <div class="board-grid">
+                        @BoardCard(("Fux", "fux", Ranked(problem.Value.HighboardFux.Select(row => (row.Item1, row.Item2)), higherIsBetter: false), "chars"))
+                        @BoardCard(("Uncle", "uncle", Ranked(problem.Value.Highboard.Select(row => (row.Item1, row.Item2)), higherIsBetter: false), "chars"))
+                    </div>
+                </article>
+            }
+        }
+    </section>
 </div>
 
-@code{
+@code {
     private readonly ConcurrentDictionary<String, int> totalsUncle = [];
     private readonly ConcurrentDictionary<String, int> totalsFux = [];
     private readonly ConcurrentDictionary<string, Tables> problems = [];
     private readonly System.Timers.Timer updateTimer = new(TimeSpan.FromMinutes(1));
+
+    private IEnumerable<(string Title, string Track, IReadOnlyList<(int Rank, string Name, int Score)> Rows, string Unit)> OverallBoards =>
+    [
+        ("Fux", "fux", Ranked(totalsFux.Select(entry => (entry.Key, entry.Value)), higherIsBetter: true), "pts"),
+        ("Uncle", "uncle", Ranked(totalsUncle.Select(entry => (entry.Key, entry.Value)), higherIsBetter: true), "pts"),
+    ];
+
+    private RenderFragment BoardCard((string Title, string Track, IReadOnlyList<(int Rank, string Name, int Score)> Rows, string Unit) board) =>
+        @<article class="scoreboard @board.Track">
+            <header class="scoreboard-header">
+                <h3>@board.Title</h3>
+                <span class="unit-label">@board.Unit</span>
+            </header>
+            @if (board.Rows.Count == 0)
+            {
+                <p class="empty-state">No scores yet</p>
+            }
+            else
+            {
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-rank">#</th>
+                            <th class="col-name">Group</th>
+                            <th class="col-score">@board.Unit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in board.Rows)
+                        {
+                            <tr class="@(row.Rank <= 3 ? $"podium-{row.Rank}" : null)">
+                                <td class="col-rank"><span class="rank">@row.Rank</span></td>
+                                <td class="col-name">@row.Name</td>
+                                <td class="col-score">@row.Score</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </article>;
 
     protected override void OnInitialized()
     {
@@ -95,8 +119,7 @@
             problems[problemName] = new Tables(problemName, ProblemService);
         }
 
-        StateHasChanged();
-
+        _ = UpdateLeaderboards();
     }
 
     public void Dispose()
@@ -106,7 +129,7 @@
         updateTimer.Dispose();
     }
 
-    private void UpdateTick(object? _sender, System.Timers.ElapsedEventArgs _args) => UpdateLeaderboards();
+    private void UpdateTick(object? _sender, System.Timers.ElapsedEventArgs _args) => _ = UpdateLeaderboards();
 
     private async Task UpdateLeaderboards()
     {
@@ -117,6 +140,9 @@
 
         await InvokeAsync(() =>
         {
+            totalsFux.Clear();
+            totalsUncle.Clear();
+
             foreach (var table in problems.Values)
             {
                 foreach (var row in table.HighboardFux)
@@ -143,14 +169,24 @@
             StateHasChanged();
         });
     }
-    
+
+    private static IReadOnlyList<(int Rank, string Name, int Score)> Ranked(
+        IEnumerable<(string Name, int Score)> entries,
+        bool higherIsBetter)
+    {
+        var ordered = higherIsBetter
+            ? entries.OrderByDescending(entry => entry.Score).ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
+            : entries.OrderBy(entry => entry.Score).ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase);
+
+        return ordered.Select((entry, index) => (index + 1, entry.Name, entry.Score)).ToList();
+    }
 
     private class Tables
     {
         public string ProblemName {get; init;}
         public ProblemService ProblemService {get; init;}
-        public IReadOnlyCollection<(string, int)> HighboardFux {get; private set;}
-        public IReadOnlyCollection<(string, int)> Highboard {get; private set;}
+        public IReadOnlyCollection<(string, int)> HighboardFux {get; private set;} = [];
+        public IReadOnlyCollection<(string, int)> Highboard {get; private set;} = [];
 
         public Tables(string problemName, ProblemService problemService){
             ProblemName = problemName;

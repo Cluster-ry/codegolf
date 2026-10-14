@@ -37,21 +37,25 @@ public sealed class ProblemHandler
 
     public async Task<string> LoadSubmission(string problemName)
     {
-        var result = await localStorage.GetAsync<string>(StorageAnswerKey(problemName)).ConfigureAwait(false);
-        if(!result.Success) return String.Empty;
-
-        return result.Value ?? String.Empty;
+        var value = await ProtectedLocalStorageHelpers.TryGetAsync<string>(
+            localStorage, StorageAnswerKey(problemName), logger);
+        return value ?? string.Empty;
     }
 
     public async Task SaveSubmission(string problemName, string submission)
     {
-        await localStorage.SetAsync(StorageAnswerKey(problemName), submission).ConfigureAwait(false);
+        await localStorage.SetAsync(StorageAnswerKey(problemName), submission);
     }
 
-    public async Task<(bool, string)> EvaluateSubmission(string problemName, string submission)
+    public async Task<(bool Success, string Output)> EvaluateSubmission(string problemName, string submission)
     {
-        var groupInfo = await groupHandler.Load().ConfigureAwait(false);   
-        return await evaluateService.TestSolution(groupInfo.Name, problemName, submission).ConfigureAwait(false);
+        var groupInfo = await groupHandler.Load();
+        if (groupInfo is null || string.IsNullOrWhiteSpace(groupInfo.Name))
+        {
+            return (false, "Register your group on the home page before submitting solutions.");
+        }
+
+        return await evaluateService.TestSolution(groupInfo.Name, problemName, submission);
     } 
 
     private static string StorageAnswerKey(string problemName) => $"RecentProblemAnswer_{problemName}";    

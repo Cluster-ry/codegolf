@@ -15,22 +15,17 @@ public sealed class GroupHandler
         this.logger = logger;
     }
 
-    public async Task<GroupSubmission?> Load()
-    {
-
-        var result = await localStorage.GetAsync<GroupSubmission>(StorageKey).ConfigureAwait(false);
-        if (!result.Success) return null;
-        return result.Value;
-    }
+    public Task<GroupSubmission?> Load()
+        => ProtectedLocalStorageHelpers.TryGetAsync<GroupSubmission>(localStorage, StorageKey, logger);
 
     public async Task Save(GroupSubmission group)
     {
-        await localStorage.SetAsync(StorageKey, group).ConfigureAwait(false);
+        await localStorage.SetAsync(StorageKey, group);
     }
 
     public async Task Clear()
     {
-        await localStorage.DeleteAsync(StorageKey).ConfigureAwait(false);
+        await localStorage.DeleteAsync(StorageKey);
     }
 }
 

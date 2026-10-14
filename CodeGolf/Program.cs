@@ -3,7 +3,7 @@ using CodeGolf.Services;
 using CodeGolf.DataBase;
 using CodeGolf.Pages;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.AspNetCore.DataProtection;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
+var dataProtectionKeysPath = Path.Combine(builder.Environment.ContentRootPath, "DataProtection-Keys");
+Directory.CreateDirectory(dataProtectionKeysPath);
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath));
 builder.Services.AddPooledDbContextFactory<DataBaseContext>(options => options.UseInMemoryDatabase("Inmemory"));
 builder.Services.AddSingleton<DataBaseContext>();
 builder.Services.AddSingleton<PythonRunner>();
@@ -18,10 +23,8 @@ builder.Services.AddTransient<GroupService>();
 builder.Services.AddTransient<ProblemService>();
 builder.Services.AddTransient<EvaluateService>();
 
-// Add client side code
-builder.Services.AddTransient<ProtectedLocalStorage>();
-builder.Services.AddTransient<GroupHandler>();
-builder.Services.AddTransient<ProblemHandler>();
+builder.Services.AddScoped<GroupHandler>();
+builder.Services.AddScoped<ProblemHandler>();
 
 
 var app = builder.Build();

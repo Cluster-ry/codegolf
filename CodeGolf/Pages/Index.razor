@@ -40,8 +40,26 @@
             <InputText @bind-Value="Model!.GroupMember2"></InputText>
         </label>
     </div>
+    @if (isSubmitting)
+    {
+        <p class="submission-status submitting" role="status" aria-live="polite">Registering your group…</p>
+    }
+    else if (hasRegistrationResult)
+    {
+        <div class="submission-status @(registrationSucceeded ? "success" : "failure")" role="status" aria-live="polite">
+            @if (registrationSucceeded)
+            {
+                <strong>Registered!</strong>
+            }
+            else
+            {
+                <strong>Could not register.</strong>
+            }
+            <span>@registrationMessage</span>
+        </div>
+    }
     <div>
-        <button type="submit">Submit</button>
+        <button type="submit" disabled="@isSubmitting">@(isSubmitting ? "Submitting…" : "Submit")</button>
     </div>
 </EditForm>
 </div>
@@ -50,6 +68,11 @@
 @code{
     public GroupSubmission? Model { get; set; }
     public static String localStorageGroupKey = "GroupInformation";
+    private bool isSubmitting;
+    private bool hasRegistrationResult;
+    private bool registrationSucceeded;
+    private string registrationMessage = "";
+
     protected override void OnInitialized() => Model ??= new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -72,8 +95,26 @@
             return;
         }
 
-        Logger.LogInformation($"Submitted group {Model}");
-        await GroupHandler.Save(Model);
-        GroupService.RegisterGroup(Model);
+        isSubmitting = true;
+        hasRegistrationResult = false;
+
+        try
+        {
+            Logger.LogInformation($"Submitted group {Model}");
+            var result = GroupService.RegisterGroup(Model);
+
+            registrationSucceeded = result.Status == GroupRegistrationStatus.Success;
+            registrationMessage = result.Message;
+            hasRegistrationResult = true;
+
+            if (registrationSucceeded)
+            {
+                await GroupHandler.Save(Model);
+            }
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
     }
 }

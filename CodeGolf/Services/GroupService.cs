@@ -5,6 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CodeGolf.Services;
 
+public enum GroupRegistrationStatus
+{
+    Success,
+    AlreadyExists,
+    Failed,
+}
+
+public readonly record struct GroupRegistrationResult(GroupRegistrationStatus Status, string Message);
+
 public sealed class GroupService
 {
     private readonly IDbContextFactory<DataBaseContext> _dataBaseContextFactory;
@@ -17,30 +26,59 @@ public sealed class GroupService
     }
 
 
-    public void RegisterGroup(GroupSubmission groupSubmission)
+    public GroupRegistrationResult RegisterGroup(GroupSubmission groupSubmission)
     {
         ArgumentNullException.ThrowIfNullOrWhiteSpace(groupSubmission?.Name);
 
+        var name = groupSubmission.Name.Trim();
+
         using var databaseContext = _dataBaseContextFactory.CreateDbContext();
-        var group = new Group(){
-            Name = groupSubmission.Name,
+        if (databaseContext.Groups.Any(group => group.Name == name))
+        {
+            _logger.LogInformation("Group registration rejected: name {GroupName} already exists", name);
+            return new GroupRegistrationResult(
+                GroupRegistrationStatus.AlreadyExists,
+                $"A group named \"{name}\" is already registered. Choose a different name.");
+        }
+
+        var group = new Group()
+        {
+            Name = name,
             IsFresher = groupSubmission.IsFresher,
         };
 
-        if(groupSubmission.GroupMember0 is not null) group.GroupMembers.Add(new GroupMember(){
+        if (groupSubmission.GroupMember0 is not null) group.GroupMembers.Add(new GroupMember()
+        {
             Name = groupSubmission.GroupMember0,
         });
 
-        if(groupSubmission.GroupMember1 is not null) group.GroupMembers.Add(new GroupMember(){
+        if (groupSubmission.GroupMember1 is not null) group.GroupMembers.Add(new GroupMember()
+        {
             Name = groupSubmission.GroupMember1,
         });
 
-        if(groupSubmission.GroupMember2 is not null) group.GroupMembers.Add(new GroupMember(){
+        if (groupSubmission.GroupMember2 is not null) group.GroupMembers.Add(new GroupMember()
+        {
             Name = groupSubmission.GroupMember2,
         });
 
-        databaseContext.Add(group);
-        databaseContext.SaveChanges();
+        try
+        {
+            databaseContext.Add(group);
+            databaseContext.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to register group {GroupName}", name);
+            return new GroupRegistrationResult(
+                GroupRegistrationStatus.Failed,
+                "Something went wrong while saving your group. Please try again.");
+        }
+
+        _logger.LogInformation("Registered group {GroupName}", name);
+        return new GroupRegistrationResult(
+            GroupRegistrationStatus.Success,
+            $"Group \"{name}\" is registered. You can start submitting solutions.");
     }
 
 
@@ -54,6 +92,6 @@ public sealed class GroupService
     {
 
         using var databaseContext = _dataBaseContextFactory.CreateDbContext();
-        return databaseContext.Groups.First((group) => group.Name == name);
+        return databaseContext.Groups.FirstOrDefault(group => group.Name == name);
     }
 }

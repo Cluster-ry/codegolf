@@ -23,7 +23,26 @@
         <InputTextArea @bind-Value="@ProblemSubmission.CurrentSolution" />
     </label>
     <p>Current submission length: @ProblemSubmission.SubmissionLength</p>
-    <button type="submit">Submit</button>
+    @if (isSubmitting)
+    {
+        <p class="submission-status submitting" role="status" aria-live="polite">Evaluating your submission…</p>
+    }
+    else if (hasEvaluatedResult)
+    {
+        <div class="submission-status @(ProblemSubmission.Success ? "success" : "failure")" role="status" aria-live="polite">
+            @if (ProblemSubmission.Success)
+            {
+                <strong>Success!</strong>
+                <span>Your output matches the expected result.</span>
+            }
+            else
+            {
+                <strong>Not passed.</strong>
+                <span>Check the current output below for details.</span>
+            }
+        </div>
+    }
+    <button type="submit" disabled="@isSubmitting">@(isSubmitting ? "Submitting…" : "Submit")</button>
 </EditForm>
 
 <div>
@@ -55,6 +74,8 @@
 
     public ProblemDefinition? ProblemDefinition {get; private set;}
     public ProblemSubmission? ProblemSubmission {get; private set;}
+    private bool isSubmitting;
+    private bool hasEvaluatedResult;
 
     protected override void OnInitialized()
     {
@@ -69,6 +90,8 @@
 
         ProblemDefinition = LoadProblem();
         ProblemSubmission = await LoadPreviousSubmission();
+        hasEvaluatedResult = false;
+        isSubmitting = false;
         StateHasChanged();
     }
 
@@ -89,12 +112,27 @@
 
     private async Task OnValidSubmit()
     {
-        Logger.LogInformation("Submitted code:\n{Submission}", ProblemSubmission.CurrentSolution);
-        await ProblemHandler.SaveSubmission(ProblemName, ProblemSubmission.CurrentSolution);
-        (bool success, string currentOutput) = await ProblemHandler.EvaluateSubmission(ProblemName, ProblemSubmission.CurrentSolution);
+        if (ProblemSubmission is null) return;
 
-        ProblemSubmission.CurrentOutput = currentOutput;
-        ProblemSubmission.Success = success;
+        isSubmitting = true;
+        hasEvaluatedResult = false;
         StateHasChanged();
+
+        try
+        {
+            Logger.LogInformation("Submitted code:\n{Submission}", ProblemSubmission.CurrentSolution);
+            await ProblemHandler.SaveSubmission(ProblemName, ProblemSubmission.CurrentSolution);
+            (bool success, string currentOutput) = await ProblemHandler.EvaluateSubmission(
+                ProblemName, ProblemSubmission.CurrentSolution);
+
+            ProblemSubmission.CurrentOutput = currentOutput;
+            ProblemSubmission.Success = success;
+            hasEvaluatedResult = true;
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
     }
 }

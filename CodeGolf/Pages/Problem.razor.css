@@ -73,6 +73,39 @@ button:hover {
     background-color: #005bb5;
 }
 
+button:disabled {
+    background-color: #88aace;
+    cursor: wait;
+}
+
+.submission-status {
+    margin: 0;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 1em;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.submission-status.submitting {
+    background-color: #eef4fb;
+    border: 1px solid #0066cc;
+    color: #004488;
+}
+
+.submission-status.success {
+    background-color: #e8f5e9;
+    border: 1px solid #2e7d32;
+    color: #1b5e20;
+}
+
+.submission-status.failure {
+    background-color: #ffebee;
+    border: 1px solid #c62828;
+    color: #b71c1c;
+}
+
 DataAnnotationsValidator, 
 ValidationSummary {
     color: #cc0000;

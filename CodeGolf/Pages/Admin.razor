@@ -1,0 +1,169 @@
+@page "/admin"
+
+@using CodeGolf.Services
+@inject AdminAccess AdminAccess
+@inject GroupService GroupService
+@inject ILogger<UserActivityLog> UserActivity
+
+<PageTitle>Admin</PageTitle>
+
+<div class="admin-page">
+    <header class="page-header">
+        <p class="eyebrow">Code Golf</p>
+        <h1>Groups</h1>
+        <p class="lede">Remove a group to delete its scores and stop that name from registering or submitting again.</p>
+    </header>
+
+    @if (!AdminAccess.IsConfigured)
+    {
+        <p class="notice failure" role="status">Admin access is turned off. Set Admin:Password in configuration, then restart the app.</p>
+    }
+    else if (!unlocked)
+    {
+        <form class="unlock" @onsubmit="Unlock" @onsubmit:preventDefault="true">
+            <label for="admin-password">Password</label>
+            <input id="admin-password" type="password" autocomplete="current-password" @bind="password" @bind:event="oninput" />
+            @if (passwordRejected)
+            {
+                <p class="notice failure" role="status">That password is not valid.</p>
+            }
+            <button type="submit">Unlock</button>
+        </form>
+    }
+    else
+    {
+        @if (notice is not null)
+        {
+            <p class="notice @(noticeIsError ? "failure" : "success")" role="status">@notice</p>
+        }
+
+        <section class="panel">
+            <div class="section-heading">
+                <h2>Registered groups</h2>
+                <p>@groups.Count registered</p>
+            </div>
+            @if (groups.Count == 0)
+            {
+                <p class="empty">No groups are registered.</p>
+            }
+            else
+            {
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Group</th>
+                            <th>Track</th>
+                            <th>Members</th>
+                            <th class="numeric">Passing</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var group in groups)
+                        {
+                            <tr>
+                                <td>@group.Name</td>
+                                <td>@(group.IsFresher ? "Fux" : "Uncle")</td>
+                                <td>@(group.Members.Count == 0 ? "No members listed" : string.Join(", ", group.Members))</td>
+                                <td class="numeric">@group.PassingAnswers</td>
+                                <td class="actions">
+                                    @if (confirmingId == group.Id)
+                                    {
+                                        <button type="button" class="danger" @onclick="() => Remove(group.Id)">Remove @group.Name</button>
+                                        <button type="button" class="quiet" @onclick="CancelConfirm">Cancel</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="danger" @onclick="() => confirmingId = group.Id">Remove</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </section>
+
+        <section class="panel">
+            <div class="section-heading">
+                <h2>Blocked names</h2>
+                <p>These names cannot register again.</p>
+            </div>
+            @if (blocked.Count == 0)
+            {
+                <p class="empty">No names are blocked.</p>
+            }
+            else
+            {
+                <ul class="blocked">
+                    @foreach (var name in blocked)
+                    {
+                        <li>
+                            <span>@name</span>
+                            <button type="button" class="quiet" @onclick="() => Unblock(name)">Allow again</button>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    private string password = "";
+    private bool unlocked;
+    private bool passwordRejected;
+    private string? notice;
+    private bool noticeIsError;
+    private int? confirmingId;
+    private IReadOnlyList<GroupSummary> groups = [];
+    private IReadOnlyList<string> blocked = [];
+
+    private void Unlock()
+    {
+        if (!AdminAccess.Check(password))
+        {
+            passwordRejected = true;
+            password = "";
+            UserActivity.UserAdminUnlockFailed();
+            return;
+        }
+
+        password = "";
+        passwordRejected = false;
+        unlocked = true;
+        Reload();
+    }
+
+    private void Reload()
+    {
+        groups = GroupService.ListGroups();
+        blocked = GroupService.ListBlockedNames();
+    }
+
+    private void CancelConfirm() => confirmingId = null;
+
+    private void Remove(int id)
+    {
+        var result = GroupService.RemoveGroup(id);
+        notice = result.Message;
+        noticeIsError = result.Status != GroupRemovalStatus.Removed;
+        confirmingId = null;
+        Reload();
+    }
+
+    private void Unblock(string name)
+    {
+        if (!GroupService.Unblock(name))
+        {
+            notice = $"\"{name}\" is not blocked.";
+            noticeIsError = true;
+            Reload();
+            return;
+        }
+
+        notice = $"\"{name}\" can be registered again. Its previous scores stay deleted.";
+        noticeIsError = false;
+        Reload();
+    }
+}

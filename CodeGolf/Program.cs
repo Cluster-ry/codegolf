@@ -19,6 +19,8 @@ builder.Services.AddDataProtection()
 builder.Services.AddPooledDbContextFactory<DataBaseContext>(options => options.UseInMemoryDatabase("Inmemory"));
 builder.Services.AddSingleton<DataBaseContext>();
 builder.Services.AddSingleton<PythonRunner>();
+builder.Services.AddSingleton<GroupBlockList>();
+builder.Services.AddSingleton<AdminAccess>();
 builder.Services.AddTransient<GroupService>();
 builder.Services.AddTransient<ProblemService>();
 builder.Services.AddTransient<EvaluateService>();

@@ -10,11 +10,13 @@ public sealed class PythonRunner : IDisposable
 {
     private readonly ILogger<PythonRunner> _logger;
     private const string pythonContainer = @"docker.io/python:alpine";
+    private const long CpuLimitNanoCpus = 250_000_000; // 0.25 CPUs
     private static readonly TimeSpan RunnerTimeOut = TimeSpan.FromSeconds(60);
     private static readonly Encoding encoding = Encoding.UTF8;
     private readonly CancellationTokenSource _lifetimeTokenSource = new();
     private readonly DockerClient? _containerClient;
     private readonly DirectoryInfo submissionDirectory = Directory.CreateTempSubdirectory("CodeGolfSubmissions");
+    private volatile bool _limitCpu = true;
 
     public bool Loaded {get; private set;}
 
@@ -62,7 +64,30 @@ public sealed class PythonRunner : IDisposable
     {
         var filePath = Path.Combine(submissionDirectory.FullName, Path.GetRandomFileName());
         await File.WriteAllTextAsync(filePath, pythonCode, token).ConfigureAwait(false);
-        
+
+        try
+        {
+            var applyCpuLimit = _limitCpu;
+            try
+            {
+                return await ExecuteInContainer(client, filePath, pythonCode, stdin, applyCpuLimit, token).ConfigureAwait(false);
+            }
+            catch (DockerApiException ex) when (applyCpuLimit && IsCpuCgroupUnavailable(ex))
+            {
+                // Rootless Podman often has memory/pids but not cpu. NanoCPUs then fails at attach.
+                _limitCpu = false;
+                _logger.CpuCgroupUnavailable(ex);
+                return await ExecuteInContainer(client, filePath, pythonCode, stdin, applyCpuLimit: false, token).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            File.Delete(filePath);
+        }
+    }
+
+    private async Task<(long, string, string)> ExecuteInContainer(DockerClient client, string filePath, string pythonCode, string stdin, bool applyCpuLimit, CancellationToken token)
+    {
         //TODO add more restricted hostConfig so to not allow dos
         var config = new CreateContainerParameters(){
             Image = pythonContainer,
@@ -70,24 +95,14 @@ public sealed class PythonRunner : IDisposable
             OpenStdin = true,
             StdinOnce = true,
             User = "nobody",
-            HostConfig = new HostConfig()
-            {
-                NetworkMode = "none",
-                Memory = 256 * 1024 * 1024, //256MB
-                ReadonlyRootfs = true,
-                NanoCPUs = 250_000_000, //0.25 CPNanoCPUs = 250_U
-                PidsLimit = 64,
-                CapDrop = ["ALL"],
-                Binds = [$"{filePath}:/submission.py:ro"]
-            }
+            HostConfig = CreateHostConfig(filePath, applyCpuLimit)
         };
-        
+
         var container = await client.Containers.CreateContainerAsync(config, token).ConfigureAwait(false);
         _logger.CreateContainer(pythonContainer, container.ID);
 
-
         try
-        {   
+        {
             var attachParameters = new ContainerAttachParameters(){
                 Stream = true,
                 Stdin = true,
@@ -102,7 +117,7 @@ public sealed class PythonRunner : IDisposable
 
             var result = await client.Containers.StartContainerAsync(container.ID, new(), token).ConfigureAwait(false);
             _logger.StartContainer(container.ID, stdin);
-            
+
             var waitResult = await client.Containers.WaitContainerAsync(container.ID, token).WaitAsync(RunnerTimeOut, token).ConfigureAwait(false);
             var exitCode = waitResult.StatusCode;
 
@@ -114,15 +129,6 @@ public sealed class PythonRunner : IDisposable
             (string stdout, string stderr) = await logStream.ReadOutputToEndAsync(token).ConfigureAwait(false);
             _logger.ContainerCommand(pythonCode, stdin, stdout, stderr);
 
-            //Seems like the following doesn't report anything
-            /*
-            var statsHandler = new Progress<ContainerStatsResponse>((stats) => _logger.ContainerStats(stats.Name, JsonSerializer.Serialize(stats, jsonSerializerOptions)));
-
-            await client.Containers.GetContainerStatsAsync(container.ID, new(){
-                Stream = false,
-                OneShot = true
-            }, statsHandler, token).ConfigureAwait(false);
-            */
             return (exitCode, stdout, stderr);
         }
         catch(TimeoutException ex){
@@ -134,9 +140,34 @@ public sealed class PythonRunner : IDisposable
             await client.Containers.RemoveContainerAsync(container.ID, new(){
                 Force = true,
             }, token).ConfigureAwait(false);
-            File.Delete(filePath);
             _logger.RemoveContainer(container.ID);
         }
+    }
+
+    private static HostConfig CreateHostConfig(string filePath, bool applyCpuLimit)
+    {
+        var hostConfig = new HostConfig()
+        {
+            NetworkMode = "none",
+            Memory = 256 * 1024 * 1024, //256MB
+            ReadonlyRootfs = true,
+            PidsLimit = 64,
+            CapDrop = ["ALL"],
+            Binds = [$"{filePath}:/submission.py:ro"]
+        };
+
+        if (applyCpuLimit)
+        {
+            hostConfig.NanoCPUs = CpuLimitNanoCpus;
+        }
+
+        return hostConfig;
+    }
+
+    private static bool IsCpuCgroupUnavailable(DockerApiException ex)
+    {
+        return ex.Message.Contains("cgroup controller `cpu`", StringComparison.Ordinal)
+            || ex.Message.Contains("cgroup controller \"cpu\"", StringComparison.Ordinal);
     }
 
     private DockerClient? CreateContainerClient()

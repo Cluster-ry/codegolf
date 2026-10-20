@@ -49,8 +49,19 @@ public sealed class EvaluateService
     {
         var problem = _problemService.GetProblem(problemName);
         ArgumentNullException.ThrowIfNull(problem);
+
+        if (_groupService.IsBlocked(groupName))
+        {
+            _userActivity.UserSubmissionRejected(groupName, problemName, "group is blocked", solution.Length);
+            return (false, GroupService.BlockedSubmissionMessage);
+        }
+
         var group = _groupService.GetGroup(groupName);
-        ArgumentNullException.ThrowIfNull(group);
+        if (group is null)
+        {
+            _userActivity.UserSubmissionWithoutGroup(problemName, solution.Length);
+            return (false, "Register your group on the home page before submitting solutions.");
+        }
 
         _logger.SubmissionCode(groupName, problemName, solution.Length, solution);
         var (proposedCode, proposedOutput, proposedException) = await _pythonRunner.ExecutePythonCode(solution, problem.Input ?? "", token).ConfigureAwait(false);

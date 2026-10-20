@@ -35,7 +35,7 @@ Use a server or rent a vps from azure. Install rootless podman and ef core suppo
 Your computer
 ```bash
 dotnet publish -c Release
-scp -r ./CodeGolf/bin/Release/net8.0/publish/ user@server.com:/var/www/
+scp -r ./CodeGolf/bin/Release/net8.0/publish/ user@server.com:/var/www/+
 ```
 
 Server

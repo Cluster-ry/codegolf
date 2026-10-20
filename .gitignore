@@ -6,6 +6,9 @@
 # ASP.NET Data Protection key ring (local dev)
 CodeGolf/DataProtection-Keys/
 
+# Group names removed by an admin. Survives restarts of the in-memory database.
+CodeGolf/banned-groups.json
+
 # User-specific files
 *.rsuser
 *.suo
